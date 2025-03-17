@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.self.lovenotes"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.self.lovenotes"
@@ -78,4 +78,11 @@ dependencies {
     val hilt_version = "2.51.1"
     implementation("com.google.dagger:hilt-android:$hilt_version")
     kapt("com.google.dagger:hilt-android-compiler:$hilt_version")
+
+    val calender_version = "1.4.0"
+    implementation("io.github.boguszpawlowski.composecalendar:composecalendar:$calender_version")
+
+    // separate artifact with utilities for working with kotlinx-datetime
+    implementation("io.github.boguszpawlowski.composecalendar:kotlinx-datetime:$calender_version")
+
 }

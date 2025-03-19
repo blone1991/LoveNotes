@@ -5,4 +5,6 @@ plugins {
 
     // hilt
     id("com.google.dagger.hilt.android") version "2.51.1" apply false
+    // firebase
+    id("com.google.gms.google-services") version "4.4.2" apply false
 }

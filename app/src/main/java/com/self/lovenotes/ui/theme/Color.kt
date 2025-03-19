@@ -11,6 +11,11 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 
-val primary = Color(0xFFE4536B)
-val onPrimary = Color.White
-val secondary = Color(0xFFFEF1F3)
+// 커스텀 색상
+val LovePink = Color(0xFFFF80AB) // Primary
+val DeepPink = Color(0xFFFF4081) // Secondary
+val SoftWhite = Color(0xFFFFF5F7) // Background
+val LightGray = Color(0xFFF5F5F5) // Surface
+val OnSurface = Color(0xFF212121) // 텍스트
+val OnPrimary = Color(0xFFFFFFFF) // 버튼 텍스트
+val ErrorRed = Color(0xFFFF1744) // 에러

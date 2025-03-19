@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.FirebaseApp
 import com.self.lovenotes.ui.navigation.AppNavGraph
 import com.self.lovenotes.ui.theme.LoveNotesTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,27 +24,13 @@ import dagger.hilt.android.HiltAndroidApp
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContent {
-            LoveNotesTheme {
+            LoveNotesTheme(
+            ) {
                 AppNavGraph(navController = rememberNavController())
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    LoveNotesTheme {
-        Greeting("Android")
     }
 }

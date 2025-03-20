@@ -40,6 +40,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.self.lovenotes.ui.Calendar.AddEventScreen
 import com.self.lovenotes.ui.Calendar.CalendarScreen
+import com.self.lovenotes.ui.Planner.PlannerScreen
 import com.self.lovenotes.ui.Setting.SettingScreen
 
 data class NavItem(val route: String, val iconImage: ImageVector?)
@@ -124,7 +125,7 @@ fun AppNavGraph (navController: NavHostController) {
                     Text("Journel")
                 }
                 composable("DatePlanner") {
-                    Text("DatePlanner")
+                    PlannerScreen()
                 }
                 composable("Setting") {
                     SettingScreen()

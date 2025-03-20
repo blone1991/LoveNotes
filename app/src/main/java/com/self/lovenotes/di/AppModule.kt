@@ -2,6 +2,7 @@ package com.self.lovenotes.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.self.lovenotes.data.repository.AiGeneratorRepository
 import com.self.lovenotes.data.repository.EventRepository
 import com.self.lovenotes.data.repository.UserRepository
 import dagger.Module
@@ -28,4 +29,8 @@ object AppModule {
     ): EventRepository {
         return EventRepository(userRepository, firestore)
     }
+
+    @Provides
+    @Singleton
+    fun provideAIGeneratorRepository() = AiGeneratorRepository()
 }

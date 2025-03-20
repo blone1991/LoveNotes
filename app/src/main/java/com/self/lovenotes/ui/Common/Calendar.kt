@@ -1,6 +1,4 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.runtime.*
@@ -14,8 +12,10 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+//import androidx.compose.foundation.pager.HorizontalPager
+//import androidx.compose.foundation.pager.rememberPagerState
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -34,10 +34,10 @@ fun BasicPagerCalendar(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit = {},
 ) {
-
     val today = LocalDate.now()
     val initialPage = 6
-    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 18 }) // 초기 페이지 설정
+    val pageCount = 18
+    val pagerState = rememberPagerState(initialPage = initialPage) // 초기 페이지 설정
     val currentMonth = remember { mutableStateOf(YearMonth.from(today)) }
     val coroutineScope = rememberCoroutineScope()
 
@@ -71,6 +71,7 @@ fun BasicPagerCalendar(
 
         HorizontalPager(
             // 패키지 명시적 지정
+            count = pageCount,
             state = pagerState,
         ) { page ->
             val month = YearMonth.from(today)
@@ -176,7 +177,7 @@ fun DateView(
     IconButton(
         enabled = !isSelected,
         onClick = { onDateSelected(date) },
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
         colors = IconButtonColors(
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onPrimary,

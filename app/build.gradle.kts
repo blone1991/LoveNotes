@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -11,6 +14,9 @@ android {
     namespace = "com.self.lovenotes"
     compileSdk = 35
 
+    val properties = Properties()
+    properties.load(FileInputStream(rootProject.file("local.properties")))
+
     defaultConfig {
         applicationId = "com.self.lovenotes"
         minSdk = 32
@@ -22,6 +28,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // BuildConfig에 API Key 추가
+        buildConfigField("String", "GEMINI_API_KEY", properties.getProperty("GEMINI_API_KEY"))
+
     }
 
     buildTypes {
@@ -42,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -93,4 +104,7 @@ dependencies {
 
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
 }

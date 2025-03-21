@@ -24,19 +24,56 @@ class PlannerViewModel @Inject constructor(
     private var _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState = _uiState.asStateFlow()
 
-    private fun makePrompt (date: LocalDate, members: Int, location: String, considerations: String): String = "From now on, as my competent secretary, you must perfectly create a schedule for the dates I will hold by verifying and researching the information I provide, such as weather, location, restaurant Naver ratings, and reviews, to the highest level possible.\n" +
-            "\n" +
-            "The person I am meeting is a very, very important person to me, and if there is anything wrong with the schedule you wrote, I will suffer a great loss.\n" +
-            "\n" +
-            "The date of the meeting is ${date.format(DateTimeFormatter.ISO_LOCAL_DATE)}, the number of people is ${members}, and the location is going to be near ${location}.\n" +
-            "Please refer to the memo below for additional considerations.\n" +
-            "Memo: ${considerations}"
+    private fun makePrompt (date: LocalDate, members: Int, location: String, considerations: String): String =
+        """
+            앞으로 너는 유능한 비서로서 내가 제공하는 정보인 날짜, 회원 수, 대략적인 위치, 그리고 메모를 통해 최고의 일정을 결정해 줘.
+            
+            네가 고려해야 할 내용들은 기상청 정보를 이용한 해당 날짜의 날씨, 장소 주변의 교통상황과 동선을 고려해야하고, 
+            맛집은 네이버 별점 기준으로 찾아보고, 제공된 지역정보 주변에 열리는 이벤트나 팝업스토어 정보를 고려해줘
+
+            메모내요이 충분히 제공되지 않는다면 적당히 네가 정해주고,
+            결과로는 아래와 같은 형식으로 제공해 줘
+            
+            목적: {}
+            테마: {}
+            전체 계획 { 예를들어
+            13:00 ~ 14:00 : 점심식사
+             - 후보 1 : (레스토랑 이름) 
+                - 추천 이유 
+                - 별점정보 또는 예산
+             - 후보 2 : (레스토랑 이름)
+                - 추천 이유 
+                - 별점정보 또는 예산   
+             - 후보 3 : (레스토랑 이름)
+                - 추천 이유 
+                - 별점정보 또는 예산
+             
+            14:00 ~ 15:00 : 액티비티
+             - 후보 1 : (액티비티 설명) - 추천 이유 - 링크 또는 예산
+             - 후보 2 : (액티비티 설명) - 추천 이유 - 링크 또는 예산
+             - 후보 3 : (액티비티 설명) - 추천 이유 - 링크 또는 예산
+            14:00 ~ 15:00 : 액티비티
+            ...
+            }
+            
+            이런식으로 작성해 줘
+
+            그리고 나는 추가로 검증을 할 시간이 없어. 위의 자료조사를 통해 최적의 방안도 표시해 줘
+            내가 만나는 사람은 나에게 아주아주 중요한 사람이고, 일정에 문제가 큰 손실이 생길 수도 있어.
+
+            그럼 아래 정보를 제공할게.
+
+            날짜: ${date}
+            장소: ${location}
+            회원 수: ${members}
+            메모: ${considerations}
+        """.trimIndent()
 
     fun requestPlan (
         date: LocalDate = LocalDate.now(),
-        members: Int = 1,
-        location: String = "seoul",
-        considerations: String = "nothing at all"
+        members: Int = 2,
+        location: String = "강남역",
+        considerations: String = "Noting At All"
     ) {
         viewModelScope.launch {
             _uiState.value = UiState.Loading

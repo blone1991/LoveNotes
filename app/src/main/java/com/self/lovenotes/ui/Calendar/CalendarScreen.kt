@@ -1,27 +1,25 @@
 package com.self.lovenotes.ui.Calendar
 
 import BasicPagerCalendar
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CalendarLocale
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.self.lovenotes.data.model.Event
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -30,11 +28,16 @@ import java.time.format.DateTimeFormatter
 fun CalendarScreen(
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
-    val selectedDate by viewModel.selectedDate.collectAsState()
+    val users by viewModel.users.collectAsState()
     val events by viewModel.events.collectAsState()
-    val popupDialog by viewModel.popupDialog.collectAsState()
 
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val popupDialog by viewModel.popupDialog.collectAsState()
     val scrollState = rememberScrollState()
+
+    LaunchedEffect (selectedDate) {
+        viewModel.fetchEvents()
+    }
 
     Column(
         modifier = Modifier
@@ -90,11 +93,20 @@ fun CalendarScreen(
                     )
                 } else {
                     events.forEach { event ->
-                        Text(
-                            text = event.title,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = 4.dp)
+//                        Column (
+//                            modifier = Modifier.padding(4.dp),
+//                        ){
+//                            Text(
+//                                text = event.title + "- ${users[event.uid]?.nickname ?: "UnKnown"}",
+//                                style = MaterialTheme.typography.bodyLarge,
+//                                color = MaterialTheme.colorScheme.onSurface,
+//                                modifier = Modifier.padding(top = 4.dp)
+//                            )
+//                        }
+                        EventCard(
+                            modifier = Modifier.padding(4.dp),
+                            event = event,
+                            author = users[event.uid]?.nickname ?: "UnKnown"
                         )
                     }
                 }
@@ -116,9 +128,14 @@ fun CalendarScreen(
     }
 
     if (popupDialog) {
-        AddEventScreen(
-            date = selectedDate,
-            onAdd = { viewModel.addEvent(it) },
+        AddEventDialog(
+            event = Event(
+                uid = users.keys.toList()[0],
+                title = "",
+                date = selectedDate,
+                fullday = true,
+            ),
+            onSubmit = { viewModel.submitEvent(it) },
             onClose = { viewModel.showDialog(false) }
         )
     }

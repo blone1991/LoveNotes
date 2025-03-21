@@ -1,10 +1,18 @@
 package com.self.lovenotes.data.model
 
-import java.io.Serializable
+import com.google.firebase.firestore.DocumentSnapshot
 import java.util.UUID
 
 data class User(
     val uid: String,
-    val inviteCode: String = UUID.randomUUID().toString().substring(0, 6),
+    val nickname: String = "",
+    val invitationCode: String = UUID.randomUUID().toString().substring(0, 6),
     val subscribing: List<String> = emptyList(),
-)
+) {
+    constructor(document: DocumentSnapshot) : this(
+        uid = document.getString("uid") ?: "",
+        nickname = document.getString("nickname") ?: "",
+        invitationCode = document.getString("invitationCode") ?: "",
+        subscribing = document.get("subscribing") as? List<String> ?: emptyList(),
+    )
+}

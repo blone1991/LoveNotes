@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.self.lovenotes.data.model.Event
 import com.self.lovenotes.data.repository.EventRepository
+import com.self.lovenotes.domain.CalendarUsecase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,25 +16,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
-    private val eventRepository: EventRepository,
+    private val calendarUsecase: CalendarUsecase
 ) : ViewModel() {
     private val _selectedDate = MutableStateFlow(getCurrentDateString())
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
 
-    private val _events = MutableStateFlow<List<Event>>(emptyList())
-    val events: StateFlow<List<Event>> = _events.asStateFlow()
-
     private val _popupDialog = MutableStateFlow(false)
     val popupDialog = _popupDialog.asStateFlow()
 
+    val users = calendarUsecase.users.asStateFlow()
+    val events = calendarUsecase.events.asStateFlow()
+
     init {
         viewModelScope.launch {
-            init()
+            calendarUsecase.fetchUsers()
+            calendarUsecase.fetchEvents(_selectedDate.value)
         }
-    }
-
-    private suspend fun init() {
-        _events.value = eventRepository.fetchEvents(_selectedDate.value)
     }
 
     fun showDialog(display: Boolean) {
@@ -42,20 +40,23 @@ class CalendarViewModel @Inject constructor(
 
     fun selectDate(date: String) {
         _selectedDate.value = date
-
-        viewModelScope.launch {
-            _events.value = eventRepository.fetchEvents(_selectedDate.value)
-        }
-
     }
 
-    fun addEvent(title: String) {
+    fun submitEvent(event: Event) {
         viewModelScope.launch {
-            eventRepository.addEvent(title, _selectedDate.value)
+            calendarUsecase.updateEvent(event)
 
-            _events.value = eventRepository.fetchEvents(_selectedDate.value)
+            fetchEvents()
         }
     }
+
+    fun fetchEvents() {
+        viewModelScope.launch {
+            calendarUsecase.fetchEvents(_selectedDate.value)
+        }
+    }
+
+
 
     private fun getCurrentDateString(): String {
         val current = LocalDate.now()

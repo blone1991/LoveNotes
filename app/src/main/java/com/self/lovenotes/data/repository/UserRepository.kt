@@ -1,5 +1,6 @@
 package com.self.lovenotes.data.repository
 
+import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -14,30 +15,27 @@ class UserRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
 ) {
-
     suspend fun login(): String? = withContext(Dispatchers.IO) {
         auth.currentUser?.uid
             ?: auth.signInAnonymously().await().user?.uid
             ?: return@withContext null
     }
 
-    suspend fun getUser(): User? = withContext(Dispatchers.IO) {
+    suspend fun getUser(uid: String? = null): User? = withContext(Dispatchers.IO) {
         try {
-            val uid = login() ?: return@withContext null
+            val userId = uid ?: login() ?: return@withContext null
 
             val userSnapshot = firestore.collection("users")
-                .document(uid)
+                .document(userId)
                 .get().await()
 
             val user = if (userSnapshot.exists()) {    // 있으면 기존 정보 반환
-                User(
-                    userSnapshot["uid"] as String,
-                    userSnapshot["inviteCode"] as String,
-                    userSnapshot["subscribing"] as List<String>
-                )
+                User(userSnapshot)
             } else {                        // 없으면 생성
-                val newUser = User(uid = uid)
-                userSnapshot.reference.set(newUser).await()
+                val newUser = User(uid = userId)
+                userSnapshot.reference.set(newUser)
+                    .addOnSuccessListener { userSnapshot.reference.update("uid", userSnapshot.reference.id) }
+                    .await()
                 newUser
             }
 
@@ -79,19 +77,25 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun addSubscribing(inviteCode: String) = withContext(Dispatchers.IO) {
+    suspend fun addSubscribing(code: String) = withContext(Dispatchers.IO) {
         try {
             val my = getUser() ?: return@withContext
 
             val snapshot = firestore.collection("users")
-                .whereEqualTo("inviteCode", inviteCode)
+                .whereEqualTo("invitationCode", code)
                 .get().await()
 
             val invitor = snapshot.firstOrNull()?.get("uid") ?: return@withContext
 
+            val newSubscribing = if (!my.subscribing.contains(invitor)) {
+                my.subscribing + invitor
+            } else {
+                my.subscribing
+            }
+
             firestore.collection("users")
                 .document(my.uid)
-                .update("subscribing", my.subscribing + invitor)
+                .update("subscribing", newSubscribing)
                 .await()
         } catch (e: Exception) {
             Log.e("UserRepository", "구독자 추가 실패", e)
@@ -106,6 +110,20 @@ class UserRepository @Inject constructor(
                 .document(uid)
                 .update("subscribing", emptyList<String>())
                 .await()
+        } catch (e: Exception) {
+            Log.e("UserRepository", "구독자 추가 실패", e)
+        }
+    }
+
+    suspend fun updateNickname(nickname: String) = withContext(Dispatchers.IO) {
+        try {
+            val uid = login() ?: return@withContext
+
+            firestore.collection("users")
+                .document(uid)
+                .update("nickname", nickname)
+                .await()
+
         } catch (e: Exception) {
             Log.e("UserRepository", "구독자 추가 실패", e)
         }

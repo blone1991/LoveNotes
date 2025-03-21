@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.self.lovenotes.data.repository.AiGeneratorRepository
 import com.self.lovenotes.data.repository.EventRepository
 import com.self.lovenotes.data.repository.UserRepository
+import com.self.lovenotes.domain.CalendarUsecase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,6 +30,10 @@ object AppModule {
     ): EventRepository {
         return EventRepository(userRepository, firestore)
     }
+
+    @Provides
+    @Singleton
+    fun provideCanlendarUsecase(userRepository: UserRepository, eventRepository: EventRepository) = CalendarUsecase(userRepository, eventRepository)
 
     @Provides
     @Singleton

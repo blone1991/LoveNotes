@@ -1,9 +1,7 @@
 package com.self.lovenotes.ui.Planner
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,14 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CalendarLocale
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.DisplayMode
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -33,10 +26,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.focus.onFocusEvent
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.self.lovenotes.ui.Common.DatePickerDialog
 import com.self.lovenotes.ui.Common.LoadingIndicatorDialog
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -68,7 +61,7 @@ fun PlannerScreen(
         Text(
             text = "We recommend your daily schedule. Please provide the information below for your recommendation.",
             style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
         )
 
         Surface(
@@ -128,8 +121,12 @@ fun PlannerScreen(
                 )
                 OutlinedTextField(
                     value = member,
-
-                    onValueChange = { member = if (it.isNotEmpty()) it.toInt().toString() else "0" } ,
+                    onValueChange = { newText ->
+                        member = newText.toIntOrNull()?.let {
+                            if (it in 0..999) it.toString() else member
+                        } ?: "0"
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     label = { Text("number of people") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -178,7 +175,7 @@ fun PlannerScreen(
 
     when (uiState) {
         is UiState.Loading -> { LoadingIndicatorDialog(color = MaterialTheme.colorScheme.primary) }
-        is UiState.Success -> { DisplayPlanDialog(text = (uiState as UiState.Success).plan, onDismiss = viewModel::closePlanDialog) }
+        is UiState.Success -> { GeneratedPlanDialog(text = (uiState as UiState.Success).plan, onDismiss = viewModel::closePlanDialog) }
         else -> {}
     }
 }

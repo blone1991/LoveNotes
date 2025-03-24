@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.googleid)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -101,6 +102,14 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+
+    // Credential Manager (통합 로그인인증)
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0") // ViewModel용
+
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     implementation("com.google.firebase:firebase-firestore")
@@ -108,5 +117,10 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
 
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
+    implementation ("com.github.jeziellago:compose-markdown:0.5.7")
+
+    implementation("com.woowla.compose.icon.collections:tabler:3.31.0")
+
 
 }

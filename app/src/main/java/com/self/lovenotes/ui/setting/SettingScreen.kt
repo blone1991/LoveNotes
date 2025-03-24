@@ -1,10 +1,14 @@
-package com.self.lovenotes.ui.Setting
+package com.self.lovenotes.ui.setting
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -137,22 +141,25 @@ fun SettingScreen(
         ) {
             Column(
                 modifier = Modifier.padding(13.dp)
+                    .defaultMinSize(minHeight = 150.dp)
             ) {
                 Text(
                     "on SubScribing",
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.headlineLarge
                 )
-                Column {
-                    users.values.toList().drop(1).forEach {
-                        Text(it.nickname)
+
+                LazyColumn (
+                    userScrollEnabled = true,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ){
+                    items(users.values.toList().drop(0)) {
+                        NickNameCard (
+                            modifier = Modifier,
+                            user= it,
+                            onDelete = { viewModel.deleteSubscribe(it) },)
                     }
-                }
-                Button(
-                    modifier = Modifier.align(Alignment.End),
-                    onClick = viewModel::clearSubscribe,
-                ) {
-                    Text("Clear")
                 }
             }
         }

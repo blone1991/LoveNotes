@@ -2,6 +2,7 @@ package com.self.lovenotes.di
 
 import android.content.Context
 import android.util.Log
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore

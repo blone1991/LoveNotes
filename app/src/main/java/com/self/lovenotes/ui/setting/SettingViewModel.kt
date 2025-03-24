@@ -1,7 +1,8 @@
-package com.self.lovenotes.ui.Setting
+package com.self.lovenotes.ui.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.self.lovenotes.data.model.User
 import com.self.lovenotes.domain.CalendarUsecase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +24,12 @@ class SettingViewModel @Inject constructor(
     fun subscribe(code: String) {
         viewModelScope.launch {
             calendarUsecase.subscribe(code)
+        }
+    }
+
+    fun deleteSubscribe(user: User) {
+        viewModelScope.launch {
+            calendarUsecase.deleteSubscribe(user)
         }
     }
 

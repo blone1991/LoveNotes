@@ -18,11 +18,21 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocal
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ProvidedValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,16 +45,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.self.lovenotes.ui.Calendar.CalendarScreen
-import com.self.lovenotes.ui.Planner.PlannerScreen
-import com.self.lovenotes.ui.Setting.SettingScreen
+import com.self.lovenotes.ui.calendar.CalendarScreen
+import com.self.lovenotes.ui.planner.PlannerScreen
+import com.self.lovenotes.ui.setting.SettingScreen
 
 data class NavItem(val route: String, val iconImage: ImageVector?)
 
+val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> { error("") }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavGraph (navController: NavHostController) {
+fun AppNavGraph(
+    navController: NavHostController,
+) {
     val navItems = listOf(
+//        NavItem("Login", null),
         NavItem("Calendar", Icons.Default.DateRange),
 //        NavItem("Journel", Icons.Default.FavoriteBorder),
         NavItem("DatePlanner", Icons.Default.Search),
@@ -55,80 +70,96 @@ fun AppNavGraph (navController: NavHostController) {
     val currentRoute = navBackStackEntry?.destination?.route ?: navItems[0].route
     val currentNavItem = navItems.find { it.route == currentRoute } ?: navItems[0]
 
-    Scaffold (
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "LoveNotes",
-                        style = MaterialTheme.typography.headlineLarge.copy(fontStyle = FontStyle.Italic),
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors()
-                    .copy(containerColor = MaterialTheme.colorScheme.background)
-            )
-        },
-        bottomBar = {
-            if (currentNavItem.route != "Auth") {
-                BottomAppBar {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Gray),
-                        verticalAlignment = Alignment.CenterVertically
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    CompositionLocalProvider(value = LocalSnackbarHostState.provides(snackbarHostState)) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            snackbarHost = {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                )
+            },
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "LoveNotes",
+                            style = MaterialTheme.typography.headlineLarge.copy(fontStyle = FontStyle.Italic),
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors()
+                        .copy(containerColor = MaterialTheme.colorScheme.background)
+                )
+            },
+            bottomBar = {
+                if (currentNavItem.route != "Login") {
+                    BottomAppBar(
+                        modifier = Modifier.fillMaxWidth(),
+                        containerColor = Color.DarkGray.copy(alpha = 0.8f),
+                        tonalElevation = 8.dp
                     ) {
-                        navItems.filter { it.iconImage != null }.forEach { item ->
-                            BottomAppBarButton(
-                                modifiner = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth(),
-                                currentRoute = currentRoute,
-                                item = item,
-                                onClick = {
-                                    navController.navigate(item.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            navItems.filter { it.iconImage != null }.forEach { item ->
+                                BottomAppBarButton(
+                                    modifiner = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth(),
+                                    currentRoute = currentRoute,
+                                    item = item,
+                                    onClick = {
+                                        navController.navigate(item.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
                                         }
-                                        launchSingleTop = true
-                                        restoreState = true
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
-    ){
-        Column (
-            modifier = Modifier
-                .padding(it)
-                .then(other = Modifier)
-                .padding(16.dp)
-                .fillMaxSize()
-        ){
-            NavHost(
-                navController = navController,
-                startDestination = "Calendar"
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(it)
+                    .then(other = Modifier)
+                    .padding(horizontal = 16.dp)
+                    .fillMaxSize()
             ) {
-                composable("Calendar") {
-                    CalendarScreen()
-                }
-                composable("Journel") {
-                    Text("Journel")
-                }
-                composable("DatePlanner") {
-                    PlannerScreen()
-                }
-                composable("Setting") {
-                    SettingScreen()
+                NavHost(
+                    navController = navController,
+                    startDestination = "Calendar"
+                ) {
+//                    composable("Login") {
+//                        LoginScreen()
+//                    }
+                    composable("Calendar") {
+                        CalendarScreen()
+                    }
+                    composable("Journel") {
+                        Text("Journel")
+                    }
+                    composable("DatePlanner") {
+                        PlannerScreen()
+                    }
+                    composable("Setting") {
+                        SettingScreen()
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun BottomAppBarButton(

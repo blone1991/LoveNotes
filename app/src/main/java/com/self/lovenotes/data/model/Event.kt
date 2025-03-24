@@ -15,6 +15,7 @@ data class Event(
     val location: String? = null,  // 미사용
 ) {
     constructor(document: QueryDocumentSnapshot) : this(
+        id = document.getString("id") ?: "",
         uid = document.getString("uid") ?: "",
         title = document.getString("title") ?: "",
         date = document.getString("date") ?: "",

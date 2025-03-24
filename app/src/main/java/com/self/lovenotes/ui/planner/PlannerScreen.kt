@@ -1,4 +1,4 @@
-package com.self.lovenotes.ui.Planner
+package com.self.lovenotes.ui.planner
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
@@ -11,7 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -29,8 +35,11 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.self.lovenotes.ui.Common.DatePickerDialog
-import com.self.lovenotes.ui.Common.LoadingIndicatorDialog
+import com.self.lovenotes.ui.common.DatePickerDialog
+import com.self.lovenotes.ui.common.LoadingIndicatorDialog
+import com.woowla.compose.icon.collections.tabler.Tabler
+import com.woowla.compose.icon.collections.tabler.tabler.Filled
+import com.woowla.compose.icon.collections.tabler.tabler.filled.CalendarEvent
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -43,7 +52,7 @@ fun PlannerScreen(
     var datePickerDialogState by remember { mutableStateOf(false) }
 
     var location by remember { mutableStateOf("") }
-    var member by remember { mutableStateOf("0") }
+    var purpose by remember { mutableStateOf("") }
     var considerations by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
 
@@ -52,6 +61,7 @@ fun PlannerScreen(
             .fillMaxSize()
 //            .padding(16.dp)
             .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(scrollState)
     ) {
         Text(
             text = "Date Planner",
@@ -75,7 +85,6 @@ fun PlannerScreen(
         ) {
             Column(
                 modifier = Modifier.padding(13.dp)
-                    .verticalScroll(scrollState)
             ) {
                 Text(
                     "Date",
@@ -95,7 +104,8 @@ fun PlannerScreen(
                                 datePickerDialogState = true
                             }
                         }
-                        .focusable()
+                        .focusable(),
+                    leadingIcon = { Icon(imageVector = Icons.Default.DateRange, contentDescription = "")}
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -108,27 +118,27 @@ fun PlannerScreen(
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
+                    isError = location.isEmpty(),
                     label = { Text("enter a location") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(imageVector = Icons.Default.LocationOn, contentDescription = "location")}
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "Members",
+                    text = "Purpose",
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelLarge
                 )
                 OutlinedTextField(
-                    value = member,
-                    onValueChange = { newText ->
-                        member = newText.toIntOrNull()?.let {
-                            if (it in 0..999) it.toString() else member
-                        } ?: "0"
-                    },
+                    value = purpose,
+                    onValueChange = { purpose = it},
+                    isError = purpose.isEmpty(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    label = { Text("number of people") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text("purpose of meeting") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Star, contentDescription = "purpose")}
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -145,19 +155,23 @@ fun PlannerScreen(
                     placeholder = { Text("Please add any additional considerations\n" +
                             "(ex. purpose, relationship or etc)") },
                     singleLine = false,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Notifications, contentDescription = "notification")}
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Button(
                     modifier = Modifier.align(Alignment.End),
-                    onClick = {viewModel.requestPlan(
-                        date = date,
-                        members = member.toInt(),
-                        location = location,
-                        considerations = considerations
-                    )},
+                    enabled = location.isNotEmpty() && purpose.isNotEmpty(),
+                    onClick = {
+                        viewModel.requestPlan(
+                            date = date,
+                            purpose = purpose,
+                            location = location,
+                            considerations = considerations)
+
+                    },
                 ) {
                     Text("Submit")
                 }
@@ -168,7 +182,7 @@ fun PlannerScreen(
     if (datePickerDialogState) {
         DatePickerDialog (
             selectedDate = date,
-            onDissmiss = {datePickerDialogState = false},
+            onDismiss = {datePickerDialogState = false},
             onDateSelected = { date = it }
         )
     }

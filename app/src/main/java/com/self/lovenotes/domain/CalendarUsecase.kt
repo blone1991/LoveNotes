@@ -49,8 +49,17 @@ class CalendarUsecase @Inject constructor(
         eventRepository.updateEvent(event)
     }
 
+    suspend fun deleteEvent(event: Event) = withContext(Dispatchers.IO) {
+        eventRepository.deleteEvent(event)
+    }
+
     suspend fun subscribe (code: String) = withContext(Dispatchers.IO) {
         userRepository.addSubscribing(code)
+        fetchUsers()
+    }
+
+    suspend fun deleteSubscribe (user: User) = withContext(Dispatchers.IO) {
+        userRepository.deleteSubscribing(user)
         fetchUsers()
     }
 

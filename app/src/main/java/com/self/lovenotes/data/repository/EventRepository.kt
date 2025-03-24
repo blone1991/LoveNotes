@@ -12,7 +12,6 @@ class EventRepository @Inject constructor(
     private val userRepository: UserRepository,
     private val firestore: FirebaseFirestore,
 ) {
-
     suspend fun updateEvent(modifiedEvent: Event) = withContext(Dispatchers.IO) {
         try {
             if (modifiedEvent.id.isEmpty()) {
@@ -32,6 +31,19 @@ class EventRepository @Inject constructor(
             e.printStackTrace()
 
             Log.e("EventRepository", "이벤트 ${if (modifiedEvent.id.isEmpty()) "추가" else "갱신"} 실패")
+        }
+    }
+
+    suspend fun deleteEvent(event: Event) = withContext(Dispatchers.IO) {
+        try {
+            firestore.collection("events")
+                .document(event.id)
+                .delete()
+                .await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+
+            Log.e("EventRepository", "이벤트 제거 실패")
         }
     }
 

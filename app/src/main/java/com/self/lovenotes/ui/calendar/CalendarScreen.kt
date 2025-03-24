@@ -1,4 +1,4 @@
-package com.self.lovenotes.ui.Calendar
+package com.self.lovenotes.ui.calendar
 
 import BasicPagerCalendar
 import androidx.compose.foundation.background
@@ -7,7 +7,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -15,15 +18,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.self.lovenotes.data.model.Event
+import com.self.lovenotes.ui.navigation.LocalSnackbarHostState
+
+import com.woowla.compose.icon.collections.tabler.Tabler
+import com.woowla.compose.icon.collections.tabler.tabler.Outline
+import com.woowla.compose.icon.collections.tabler.tabler.outline.CalendarPlus
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel = hiltViewModel(),
@@ -32,8 +42,17 @@ fun CalendarScreen(
     val events by viewModel.events.collectAsState()
 
     val selectedDate by viewModel.selectedDate.collectAsState()
-    val popupDialog by viewModel.popupDialog.collectAsState()
+    val showEventDialog by viewModel.showEventDialog.collectAsState()
     val scrollState = rememberScrollState()
+
+    val localSnackbarHostState = LocalSnackbarHostState.current
+    var snackbarMessage: String? by remember { mutableStateOf(null) }
+
+    LaunchedEffect (snackbarMessage) {
+        if (!snackbarMessage.isNullOrEmpty()) {
+            localSnackbarHostState.showSnackbar(message = snackbarMessage!!)
+        }
+    }
 
     LaunchedEffect (selectedDate) {
         viewModel.fetchEvents()
@@ -42,7 +61,6 @@ fun CalendarScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-//            .padding(16.dp)
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
@@ -79,11 +97,47 @@ fun CalendarScreen(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text(
-                    text = viewModel.formatDate(selectedDate),
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = viewModel.formatDate(selectedDate),
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    TextButton(
+                        onClick = {
+                            viewModel.showEditEventDialog(
+                                event = Event(
+                                    uid = users.keys.toList()[0],
+                                    title = "",
+                                    date = selectedDate,
+                                    fullday = true,
+                                )
+                            )
+                        },
+//                        modifier = Modifier.align(Alignment.End),
+                        colors = ButtonDefaults.buttonColors()
+                            .copy(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Icon(imageVector = Tabler.Outline.CalendarPlus, "")
+                            Text(
+                                text = "Add Event",
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+
+                    }
+                }
+
                 if (events.isEmpty()) {
                     Text(
                         text = "No events for this day",
@@ -93,50 +147,26 @@ fun CalendarScreen(
                     )
                 } else {
                     events.forEach { event ->
-//                        Column (
-//                            modifier = Modifier.padding(4.dp),
-//                        ){
-//                            Text(
-//                                text = event.title + "- ${users[event.uid]?.nickname ?: "UnKnown"}",
-//                                style = MaterialTheme.typography.bodyLarge,
-//                                color = MaterialTheme.colorScheme.onSurface,
-//                                modifier = Modifier.padding(top = 4.dp)
-//                            )
-//                        }
                         EventCard(
-                            modifier = Modifier.padding(4.dp),
+                            modifier = Modifier.padding(vertical = 8.dp),
                             event = event,
-                            author = users[event.uid]?.nickname ?: "UnKnown"
+                            author = users[event.uid]?.nickname ?: "UnKnown",
+                            onEdit = { viewModel.showEditEventDialog(event) },
+                            onDelete = { viewModel.deleteEvent(event)}
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                TextButton(
-                    onClick = { viewModel.showDialog(true) },
-                    modifier = Modifier.align(Alignment.End),
-                    colors = ButtonDefaults.buttonColors()
-                        .copy(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = "Add Event",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
             }
         }
     }
 
-    if (popupDialog) {
-        AddEventDialog(
-            event = Event(
-                uid = users.keys.toList()[0],
-                title = "",
-                date = selectedDate,
-                fullday = true,
-            ),
+    if (showEventDialog != null) {
+        EditEventDialog(
+            event = showEventDialog!!,
             onSubmit = { viewModel.submitEvent(it) },
-            onClose = { viewModel.showDialog(false) }
+            onDismiss = { viewModel.showEditEventDialog(null) },
+            onError = { snackbarMessage = it }
         )
     }
 }

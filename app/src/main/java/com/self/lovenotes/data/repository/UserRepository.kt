@@ -1,6 +1,5 @@
 package com.self.lovenotes.data.repository
 
-import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
@@ -32,7 +32,21 @@ class UserRepository @Inject constructor(
             val user = if (userSnapshot.exists()) {    // 있으면 기존 정보 반환
                 User(userSnapshot)
             } else {                        // 없으면 생성
-                val newUser = User(uid = userId)
+                val users = firestore.collection("users")
+                    .get().await()
+
+                val exists = users.mapNotNull { it.data.get("uid") }.toList()
+
+                // 초대코드가 겹치지 않도록.
+                var genUid = ""
+                while (true) {
+                    genUid = UUID.randomUUID().toString().substring(0, 6)
+                    if (exists.firstOrNull { it == genUid } == null) {
+                        break
+                    }
+                }
+
+                val newUser = User(uid = userId, invitationCode = genUid)
                 userSnapshot.reference.set(newUser)
                     .addOnSuccessListener { userSnapshot.reference.update("uid", userSnapshot.reference.id) }
                     .await()
@@ -96,6 +110,21 @@ class UserRepository @Inject constructor(
             firestore.collection("users")
                 .document(my.uid)
                 .update("subscribing", newSubscribing)
+                .await()
+        } catch (e: Exception) {
+            Log.e("UserRepository", "구독자 추가 실패", e)
+        }
+    }
+
+
+
+    suspend fun deleteSubscribing(user: User) = withContext(Dispatchers.IO) {
+        try {
+            val my = getUser() ?: return@withContext
+
+            firestore.collection("users")
+                .document(my.uid)
+                .update("subscribing", my.subscribing.filter { it != user.uid }.toList())
                 .await()
         } catch (e: Exception) {
             Log.e("UserRepository", "구독자 추가 실패", e)

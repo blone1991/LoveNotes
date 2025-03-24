@@ -6,7 +6,7 @@ import java.util.UUID
 data class User(
     val uid: String,
     val nickname: String = "",
-    val invitationCode: String = UUID.randomUUID().toString().substring(0, 6),
+    val invitationCode: String,
     val subscribing: List<String> = emptyList(),
 ) {
     constructor(document: DocumentSnapshot) : this(

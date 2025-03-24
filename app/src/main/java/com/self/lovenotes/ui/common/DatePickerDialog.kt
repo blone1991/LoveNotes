@@ -1,4 +1,4 @@
-package com.self.lovenotes.ui.Common
+package com.self.lovenotes.ui.common
 
 import BasicPagerCalendar
 import androidx.compose.foundation.layout.Arrangement
@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,13 +26,13 @@ import java.time.LocalDate
 @Composable
 fun DatePickerDialog (
     selectedDate: LocalDate,
-    onDissmiss: () -> Unit,
+    onDismiss: () -> Unit,
     onDateSelected: (LocalDate) -> Unit = {}
 ) {
     var localDate by remember { mutableStateOf(selectedDate) }
 
     Dialog(
-        onDismissRequest = onDissmiss,
+        onDismissRequest = onDismiss,
     ) {
         Surface(
             modifier = Modifier
@@ -52,34 +50,28 @@ fun DatePickerDialog (
                 )
 
                 Row (
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(15.dp)
+                    modifier = Modifier.align(Alignment.End),
+                    verticalAlignment = Alignment.Top
                 ){
                     TextButton(
-                        onClick = { onDateSelected(localDate); onDissmiss() },
-                        modifier = Modifier.width(95.dp),
+                        onClick = { onDateSelected(localDate); onDismiss() },
+                        modifier = Modifier.weight(1f),
                         shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.buttonColors()
-                            .copy(containerColor = MaterialTheme.colorScheme.onErrorContainer)
                     ) {
                         Text(
                             text = "Confirm",
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
                     TextButton(
-                        onClick = onDissmiss,
-                        modifier = Modifier.width(95.dp),
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
                         shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.buttonColors()
-                            .copy(containerColor = MaterialTheme.colorScheme.error)
                     ) {
                         Text(
                             text = "Cancel",
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }

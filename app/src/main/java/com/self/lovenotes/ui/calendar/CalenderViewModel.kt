@@ -1,9 +1,8 @@
-package com.self.lovenotes.ui.Calendar
+package com.self.lovenotes.ui.calendar
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.self.lovenotes.data.model.Event
-import com.self.lovenotes.data.repository.EventRepository
 import com.self.lovenotes.domain.CalendarUsecase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +20,8 @@ class CalendarViewModel @Inject constructor(
     private val _selectedDate = MutableStateFlow(getCurrentDateString())
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
 
-    private val _popupDialog = MutableStateFlow(false)
-    val popupDialog = _popupDialog.asStateFlow()
+    private val _showEditEventDialog = MutableStateFlow<Event?>(null)
+    val showEventDialog = _showEditEventDialog.asStateFlow()
 
     val users = calendarUsecase.users.asStateFlow()
     val events = calendarUsecase.events.asStateFlow()
@@ -34,9 +33,10 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun showDialog(display: Boolean) {
-        _popupDialog.value = display
+    fun showEditEventDialog(event: Event?) {
+        _showEditEventDialog.value = event
     }
+
 
     fun selectDate(date: String) {
         _selectedDate.value = date
@@ -45,6 +45,14 @@ class CalendarViewModel @Inject constructor(
     fun submitEvent(event: Event) {
         viewModelScope.launch {
             calendarUsecase.updateEvent(event)
+
+            fetchEvents()
+        }
+    }
+
+    fun deleteEvent(event: Event) {
+        viewModelScope.launch {
+            calendarUsecase.deleteEvent(event)
 
             fetchEvents()
         }

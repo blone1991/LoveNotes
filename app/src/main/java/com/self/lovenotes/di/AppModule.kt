@@ -9,7 +9,6 @@ import com.self.lovenotes.domain.CalendarUsecase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -25,15 +24,15 @@ object AppModule {
     @Provides
     @Singleton
     fun provideEventRepository(
-        userRepository: UserRepository,
         firestore: FirebaseFirestore,
     ): EventRepository {
-        return EventRepository(userRepository, firestore)
+        return EventRepository(firestore)
     }
 
     @Provides
     @Singleton
-    fun provideCanlendarUsecase(userRepository: UserRepository, eventRepository: EventRepository) = CalendarUsecase(userRepository, eventRepository)
+    fun provideCanlendarUsecase(userRepository: UserRepository, eventRepository: EventRepository) =
+        CalendarUsecase(userRepository, eventRepository)
 
     @Provides
     @Singleton

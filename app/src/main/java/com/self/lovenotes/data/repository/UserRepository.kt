@@ -48,7 +48,12 @@ class UserRepository @Inject constructor(
 
                 val newUser = User(uid = userId, invitationCode = genUid)
                 userSnapshot.reference.set(newUser)
-                    .addOnSuccessListener { userSnapshot.reference.update("uid", userSnapshot.reference.id) }
+                    .addOnSuccessListener {
+                        userSnapshot.reference.update(
+                            "uid",
+                            userSnapshot.reference.id
+                        )
+                    }
                     .await()
                 newUser
             }
@@ -91,70 +96,25 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun addSubscribing(code: String) = withContext(Dispatchers.IO) {
-        try {
-            val my = getUser() ?: return@withContext
+    suspend fun updateUser(user: User) = withContext(Dispatchers.IO) {
+        firestore.collection("users")
+            .document(user.uid)
+            .set(user)
+            .await()
+    }
 
+    // 초대 코드로 사용자 검색 (예: 초대 기능 지원)
+    suspend fun findUserByInvitationCode(code: String): User? = withContext(Dispatchers.IO) {
+        try {
             val snapshot = firestore.collection("users")
                 .whereEqualTo("invitationCode", code)
-                .get().await()
-
-            val invitor = snapshot.firstOrNull()?.get("uid") ?: return@withContext
-
-            val newSubscribing = if (!my.subscribing.contains(invitor)) {
-                my.subscribing + invitor
-            } else {
-                my.subscribing
-            }
-
-            firestore.collection("users")
-                .document(my.uid)
-                .update("subscribing", newSubscribing)
-                .await()
-        } catch (e: Exception) {
-            Log.e("UserRepository", "구독자 추가 실패", e)
-        }
-    }
-
-
-
-    suspend fun deleteSubscribing(user: User) = withContext(Dispatchers.IO) {
-        try {
-            val my = getUser() ?: return@withContext
-
-            firestore.collection("users")
-                .document(my.uid)
-                .update("subscribing", my.subscribing.filter { it != user.uid }.toList())
-                .await()
-        } catch (e: Exception) {
-            Log.e("UserRepository", "구독자 추가 실패", e)
-        }
-    }
-
-    suspend fun clearSubscribing() = withContext(Dispatchers.IO) {
-        try {
-            val uid = login() ?: return@withContext
-
-            firestore.collection("users")
-                .document(uid)
-                .update("subscribing", emptyList<String>())
-                .await()
-        } catch (e: Exception) {
-            Log.e("UserRepository", "구독자 추가 실패", e)
-        }
-    }
-
-    suspend fun updateNickname(nickname: String) = withContext(Dispatchers.IO) {
-        try {
-            val uid = login() ?: return@withContext
-
-            firestore.collection("users")
-                .document(uid)
-                .update("nickname", nickname)
+                .get()
                 .await()
 
+            snapshot.documents.firstOrNull()?.let { User(it) }
         } catch (e: Exception) {
-            Log.e("UserRepository", "구독자 추가 실패", e)
+            Log.e("UserRepository", "초대 코드로 사용자 검색 실패", e)
+            null
         }
     }
 }

@@ -14,13 +14,13 @@ class CalendarUsecase @Inject constructor(
     private val userRepository: UserRepository,
     private val eventRepository: EventRepository,
 ) {
-    val users = MutableStateFlow<Map<String, User>>(emptyMap())
-    val events = MutableStateFlow<List<Event>>(emptyList())
+    val users = MutableStateFlow<Map<String, User>>(emptyMap()) // [0] : 내 정보 [1 ~ ] 내가 구독하는 User 정보
+    val events = MutableStateFlow<List<Event>>(emptyList())     // 월 단위 이벤트
 
     suspend fun fetchUsers() = withContext(Dispatchers.IO) {
         val map: MutableMap<String, User> = mutableMapOf()
 
-        val myUid = userRepository.login()?: return@withContext
+        val myUid = userRepository.login() ?: return@withContext
         val my = userRepository.getUser(myUid) ?: return@withContext
 
         map[my.uid] = my
@@ -31,17 +31,18 @@ class CalendarUsecase @Inject constructor(
         users.value = map
     }
 
+    // 월 단위 이벤트 조회
     suspend fun fetchEvents(date: String) = withContext(Dispatchers.IO) {
         try {
+            val yearMonth = date.split("-").let { "${it[0]}-${it[1]}" }
             events.value = users.value.keys
-                .map { eventRepository.getEventsForDate(it, date) }
+                .map { eventRepository.getEventsMontly(it, yearMonth) }
                 .reduce { acc, events -> acc + events }
                 .toList()
-
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("EventRepository", "이벤트 정보 조회 실패")
-            emptyList<Event>()
+            Log.e("CalendarUsecase", "월 이벤트 정보 조회 실패")
+            events.value = emptyList()
         }
     }
 
@@ -53,23 +54,29 @@ class CalendarUsecase @Inject constructor(
         eventRepository.deleteEvent(event)
     }
 
-    suspend fun subscribe (code: String) = withContext(Dispatchers.IO) {
-        userRepository.addSubscribing(code)
+    suspend fun subscribe(code: String) = withContext(Dispatchers.IO) {
+        userRepository.findUserByInvitationCode(code)?.let { invitor ->
+            userRepository.getUser()?.let {
+                userRepository.updateUser(it.copy(subscribing = it.subscribing + invitor.uid))
+            }
+        }
+
         fetchUsers()
     }
 
-    suspend fun deleteSubscribe (user: User) = withContext(Dispatchers.IO) {
-        userRepository.deleteSubscribing(user)
+    suspend fun deleteSubscribe(user: User) = withContext(Dispatchers.IO) {
+        userRepository.getUser()?.let {
+            userRepository.updateUser(it.copy(subscribing = it.subscribing.filter { it != user.uid }))
+        }
+
         fetchUsers()
     }
 
-    suspend fun clearSubscribe () = withContext(Dispatchers.IO) {
-        userRepository.clearSubscribing()
-        fetchUsers()
-    }
+    suspend fun updateNickname(nickname: String) = withContext(Dispatchers.IO) {
+        userRepository.getUser()?.let {
+            userRepository.updateUser(it.copy(nickname = nickname))
+        }
 
-    suspend fun updateNickname (nickname: String) = withContext(Dispatchers.IO) {
-        userRepository.updateNickname(nickname)
         fetchUsers()
     }
 }

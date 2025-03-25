@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
-    private val calendarUsecase: CalendarUsecase
+    private val calendarUsecase: CalendarUsecase,
 ) : ViewModel() {
     private val _selectedDate = MutableStateFlow(getCurrentDateString())
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
@@ -39,13 +39,17 @@ class CalendarViewModel @Inject constructor(
 
 
     fun selectDate(date: String) {
+        val oldYearMonth = _selectedDate.value.substring(0, 7)
+        val newYearMonth = date.substring(0, 7)
         _selectedDate.value = date
+        if (oldYearMonth != newYearMonth) {
+            fetchEvents()
+        }
     }
 
     fun submitEvent(event: Event) {
         viewModelScope.launch {
             calendarUsecase.updateEvent(event)
-
             fetchEvents()
         }
     }
@@ -63,7 +67,6 @@ class CalendarViewModel @Inject constructor(
             calendarUsecase.fetchEvents(_selectedDate.value)
         }
     }
-
 
 
     private fun getCurrentDateString(): String {

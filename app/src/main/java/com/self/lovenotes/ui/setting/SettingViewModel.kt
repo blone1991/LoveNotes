@@ -33,12 +33,6 @@ class SettingViewModel @Inject constructor(
         }
     }
 
-    fun clearSubscribe() {
-        viewModelScope.launch {
-            calendarUsecase.clearSubscribe()
-        }
-    }
-
     fun updateNickname(nickname: String) {
         viewModelScope.launch {
             calendarUsecase.updateNickname(nickname)

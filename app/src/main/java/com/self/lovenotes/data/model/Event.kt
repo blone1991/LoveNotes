@@ -1,11 +1,10 @@
 package com.self.lovenotes.data.model
 
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.QueryDocumentSnapshot
-import java.util.Objects
+import java.util.UUID
 
 data class Event(
-    val id: String = "",
+    val id: String = UUID.randomUUID().toString(),
     val uid: String = "",
     val title: String,
     val date: String,
@@ -20,9 +19,12 @@ data class Event(
         title = document.getString("title") ?: "",
         date = document.getString("date") ?: "",
         fullday = document.getBoolean("fullday") ?: true,
+        startTime = document.getString("startTime") ?: "0000",
+        endTime = document.getString("endTime") ?: "0000",
+        location = document.getString("location")
     )
 
-    fun toMap() : HashMap<String, Any?> = hashMapOf(
+    fun toMap(): HashMap<String, Any?> = hashMapOf(
         "id" to id,
         "uid" to uid,
         "title" to title,

@@ -2,15 +2,19 @@ package com.self.lovenotes.ui.calendar
 
 import BasicPagerCalendar
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.self.lovenotes.data.model.Event
 import com.self.lovenotes.ui.navigation.LocalSnackbarHostState
-
 import com.woowla.compose.icon.collections.tabler.Tabler
 import com.woowla.compose.icon.collections.tabler.tabler.Outline
 import com.woowla.compose.icon.collections.tabler.tabler.outline.CalendarPlus
@@ -48,14 +51,10 @@ fun CalendarScreen(
     val localSnackbarHostState = LocalSnackbarHostState.current
     var snackbarMessage: String? by remember { mutableStateOf(null) }
 
-    LaunchedEffect (snackbarMessage) {
+    LaunchedEffect(snackbarMessage) {
         if (!snackbarMessage.isNullOrEmpty()) {
             localSnackbarHostState.showSnackbar(message = snackbarMessage!!)
         }
-    }
-
-    LaunchedEffect (selectedDate) {
-        viewModel.fetchEvents()
     }
 
     Column(
@@ -138,7 +137,8 @@ fun CalendarScreen(
                     }
                 }
 
-                if (events.isEmpty()) {
+                val dailyEvents = events.filter { it.date == selectedDate }
+                if (dailyEvents.isEmpty()) {
                     Text(
                         text = "No events for this day",
                         style = MaterialTheme.typography.bodyLarge,
@@ -146,13 +146,13 @@ fun CalendarScreen(
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 } else {
-                    events.forEach { event ->
+                    dailyEvents.forEach { event ->
                         EventCard(
                             modifier = Modifier.padding(vertical = 8.dp),
                             event = event,
                             author = users[event.uid]?.nickname ?: "UnKnown",
                             onEdit = { viewModel.showEditEventDialog(event) },
-                            onDelete = { viewModel.deleteEvent(event)}
+                            onDelete = { viewModel.deleteEvent(event) }
                         )
                     }
                 }

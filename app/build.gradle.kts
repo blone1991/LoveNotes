@@ -118,9 +118,8 @@ dependencies {
 
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
-    implementation ("com.github.jeziellago:compose-markdown:0.5.7")
+    implementation("com.github.jeziellago:compose-markdown:0.5.7")
 
+    // Icon
     implementation("com.woowla.compose.icon.collections:tabler:3.31.0")
-
-
 }

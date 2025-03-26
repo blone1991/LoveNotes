@@ -71,8 +71,8 @@ fun SettingScreen(
 
                     Text(
                         "After you enter your nickname, you will see an invitation code.",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.labelLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
 
                     OutlinedTextField(
@@ -88,7 +88,7 @@ fun SettingScreen(
                             if (inputNickname.isNotEmpty())
                                 viewModel.updateNickname(inputNickname)
 
-                            inputNickname = "";
+                            inputNickname = ""
                         },
                     ) {
                         Text("Confirm")
@@ -124,7 +124,7 @@ fun SettingScreen(
                         if (inputInvitationCode.isNotEmpty())
                             viewModel.subscribe(inputInvitationCode)
 
-                        inputInvitationCode = "";
+                        inputInvitationCode = ""
                     },
                 ) {
                     Text("Save")
@@ -140,7 +140,8 @@ fun SettingScreen(
             shadowElevation = 4.dp,
         ) {
             Column(
-                modifier = Modifier.padding(13.dp)
+                modifier = Modifier
+                    .padding(13.dp)
                     .defaultMinSize(minHeight = 150.dp)
             ) {
                 Text(
@@ -149,17 +150,27 @@ fun SettingScreen(
                     style = MaterialTheme.typography.headlineLarge
                 )
 
-                LazyColumn (
-                    userScrollEnabled = true,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ){
-                    items(users.values.toList().drop(0)) {
-                        NickNameCard (
-                            modifier = Modifier,
-                            user= it,
-                            onDelete = { viewModel.deleteSubscribe(it) },)
+                if (users.values.size > 1) {
+                    LazyColumn(
+                        userScrollEnabled = true,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        items(users.values.toList().drop(0)) {
+                            NickNameCard(
+                                modifier = Modifier,
+                                user = it,
+                                onDelete = { viewModel.deleteSubscribe(it) },
+                            )
+                        }
                     }
+                } else {
+                    Text(
+                        text = "There are no subscribed users.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
         }

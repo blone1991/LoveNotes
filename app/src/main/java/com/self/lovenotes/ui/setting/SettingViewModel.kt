@@ -17,7 +17,7 @@ class SettingViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            calendarUsecase.fetchUsers()
+            val a = calendarUsecase.fetchUsers()
         }
     }
 

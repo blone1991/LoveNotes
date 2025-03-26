@@ -1,6 +1,5 @@
 package com.self.lovenotes.ui.navigation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,15 +23,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocal
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.ProvidedValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +41,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.self.lovenotes.ui.calendar.CalendarScreen
+import com.self.lovenotes.ui.login.LoginScreen
 import com.self.lovenotes.ui.planner.PlannerScreen
 import com.self.lovenotes.ui.setting.SettingScreen
 
@@ -59,7 +55,7 @@ fun AppNavGraph(
     navController: NavHostController,
 ) {
     val navItems = listOf(
-//        NavItem("Login", null),
+        NavItem("Login", null),
         NavItem("Calendar", Icons.Default.DateRange),
 //        NavItem("Journel", Icons.Default.FavoriteBorder),
         NavItem("DatePlanner", Icons.Default.Search),
@@ -71,6 +67,8 @@ fun AppNavGraph(
     val currentNavItem = navItems.find { it.route == currentRoute } ?: navItems[0]
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val startDestination = remember { mutableStateOf("Login") }
 
     CompositionLocalProvider(value = LocalSnackbarHostState.provides(snackbarHostState)) {
         Scaffold(
@@ -137,11 +135,11 @@ fun AppNavGraph(
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = "Calendar"
+                    startDestination = startDestination.value
                 ) {
-//                    composable("Login") {
-//                        LoginScreen()
-//                    }
+                    composable("Login") {
+                        LoginScreen(onLogin = { startDestination.value = "Calendar" })
+                    }
                     composable("Calendar") {
                         CalendarScreen()
                     }

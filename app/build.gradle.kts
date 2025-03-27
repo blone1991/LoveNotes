@@ -29,10 +29,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-
         // BuildConfig에 API Key 추가
         buildConfigField("String", "GEMINI_API_KEY", properties.getProperty("GEMINI_API_KEY"))
-
+        manifestPlaceholders["GOOGLE_MAP_API_KEY"] = properties.getProperty("GOOGLE_MAP_API_KEY")
     }
 
     buildTypes {
@@ -42,6 +41,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
     compileOptions {
@@ -102,6 +104,12 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("com.google.firebase:firebase-firestore")            // firestore - 문서저장소
+    implementation("com.google.firebase:firebase-crashlytics")          // crashlytics - 앱 관리 Dashboard
+    implementation("com.google.firebase:firebase-analytics")            // analytic - 앱 관리 Dashboard (애널리틱스 기능)
+
+    // Coil 이미지 로드
+    implementation("io.coil-kt:coil-compose:2.4.0")                     // Coil
 
     // Credential Manager (통합 로그인인증)
     implementation("androidx.credentials:credentials:1.3.0")
@@ -109,17 +117,31 @@ dependencies {
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0") // ViewModel용
 
-
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-crashlytics")
-    implementation("com.google.firebase:firebase-analytics")
-
+    // DatePlanner 관련
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-
     implementation("com.github.jeziellago:compose-markdown:0.5.7")
 
     // Icon
     implementation("com.woowla.compose.icon.collections:tabler:3.31.0")
+
+    // Map Api
+    implementation("com.google.android.gms:play-services-maps:19.1.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0") // 위치 선택 시 유용
+
+    implementation("com.google.maps.android:maps-compose:4.3.0")
+
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+
+    // Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("androidx.activity:activity-compose:1.8.2")
+
+    // for Permissions
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
 }

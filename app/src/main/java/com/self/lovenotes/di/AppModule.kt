@@ -1,13 +1,16 @@
 package com.self.lovenotes.di
 
 import android.content.Context
+import androidx.room.Room
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.self.lovenotes.data.repository.AiGeneratorRepository
-import com.self.lovenotes.data.repository.EventRepository
-import com.self.lovenotes.data.repository.UserRepository
-import com.self.lovenotes.data.util.NetworkChecker
-import com.self.lovenotes.domain.CalendarUsecase
+import com.self.lovenotes.data.db.AppDatabase
+import com.self.lovenotes.data.remote.repository.AiGeneratorRepository
+import com.self.lovenotes.data.remote.repository.EventRepository
+import com.self.lovenotes.data.remote.repository.UserRepository
+import com.self.lovenotes.domain.usecase.CalendarUsecase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,5 +46,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNetworkChecker(@ApplicationContext context: Context) = NetworkChecker(context)
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(context, AppDatabase::class.java, "love_notes_db").build()
+    }
+
+    @Provides
+    @Singleton
+    fun providePathDao(database: AppDatabase) = database.pathDao()
+
+    @Provides
+    @Singleton
+    fun provideFusedLocationClient(@ApplicationContext context: Context): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(context)
+    }
 }

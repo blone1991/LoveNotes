@@ -42,8 +42,6 @@
 
 ```markdown
 ## 프로젝트 구조
-
-```
 app/
 ├── src/
 │   ├── main/
@@ -55,7 +53,6 @@ app/
 │   │   │   └── service/                      # 백그라운드 서비스 (TrackingService)
 │   │   ├── res/                              # 리소스 (아이콘, 테마, 문자열 등)
 │   │   └── AndroidManifest.xml               # 매니페스트 파일
-```
 ```
 ---
 

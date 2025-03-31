@@ -1,6 +1,6 @@
 # LoveNotes - 안드로이드 포트폴리오 프로젝트
 
-![LoveNotes Icon](app/src/main/res/mipmap/ic_launcher.png)
+![LoveNotes Icon](app/src/main/res/mipmap/love_notes_icon.jpg)
 
 **LoveNotes**는 현대적인 안드로이드 개발 기술을 활용하여 제작된 포트폴리오 프로젝트입니다. 이 앱은 사용자가 사랑하는 사람들과의 추억을 기록하고, 일정을 관리하며, AI를 활용한 데이트 플랜을 생성할 수 있도록 설계되었습니다. 최신 안드로이드 개발 프레임워크와 라이브러리를 사용하여 모던하고 반응성 있는 사용자 경험을 제공합니다.
 
@@ -36,12 +36,8 @@
     - Material 3 (최신 디자인 시스템)
 
 ---
-
 ## 프로젝트 구조
-아래는 요청하신 프로젝트 구조 부분만 마크다운 형식으로 작성한 내용입니다. `README.md`에 바로 붙여넣을 수 있습니다.
-
 ```markdown
-## 프로젝트 구조
 app/
 ├── src/
 │   ├── main/

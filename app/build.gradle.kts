@@ -33,7 +33,9 @@ android {
         }
         // BuildConfig에 API Key 추가
         buildConfigField("String", "GEMINI_API_KEY", properties.getProperty("GEMINI_API_KEY"))
+        buildConfigField("String", "GOOGLE_AUTH_CLIENT_ID", properties.getProperty("GOOGLE_AUTH_CLIENT_ID"))
         manifestPlaceholders["GOOGLE_MAP_API_KEY"] = properties.getProperty("GOOGLE_MAP_API_KEY")
+
     }
 
     buildTypes {
@@ -147,5 +149,4 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     implementation ("androidx.exifinterface:exifinterface:1.3.7")
-
 }

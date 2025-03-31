@@ -1,6 +1,7 @@
 package com.self.lovenotes.data.remote.repository
 
 import android.util.Log
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.self.lovenotes.data.remote.model.User
@@ -15,11 +16,7 @@ class UserRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
 ) {
-    suspend fun login(): String? = withContext(Dispatchers.IO) {
-        auth.currentUser?.uid
-            ?: auth.signInAnonymously().await().user?.uid
-            ?: return@withContext null
-    }
+    fun login(): String? = auth.currentUser?.uid
 
     suspend fun getUser(uid: String? = null): User? = withContext(Dispatchers.IO) {
         try {

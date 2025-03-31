@@ -17,6 +17,10 @@ class CalendarUsecase @Inject constructor(
     val users = MutableStateFlow<Map<String, User>>(emptyMap()) // [0] : 내 정보 [1 ~ ] 내가 구독하는 User 정보
     val events = MutableStateFlow<List<Event>>(emptyList())     // 월 단위 이벤트
 
+    suspend fun loginWithGoogle( ) {
+        userRepository.login()
+    }
+
     suspend fun fetchUsers() = withContext(Dispatchers.IO) {
         val map: MutableMap<String, User> = mutableMapOf()
 

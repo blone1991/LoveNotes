@@ -3,6 +3,7 @@ package com.self.lovenotes.data.remote.repository
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.self.lovenotes.data.remote.model.Event
+import com.self.lovenotes.data.util.utils.getMonthRange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -14,7 +15,7 @@ class EventRepository @Inject constructor(
     suspend fun updateEvent(modifiedEvent: Event) = withContext(Dispatchers.IO) {
         try {
             firestore.collection("events")
-                .document(modifiedEvent.id)
+                .document(modifiedEvent.id)     // 로컬에서 ID를 만들기 때문에 항상 ID를 가진다.
                 .set(modifiedEvent)
                 .await()
 
@@ -76,12 +77,5 @@ class EventRepository @Inject constructor(
             }
         }
 
-    // "2025-03-XX" -> ("2025-03-01", "2025-03-31") 변환 헬퍼 함수
-    private fun getMonthRange(date: String): Pair<String, String> {
-        val parts = date.split("-")
-        val year = parts[0]
-        val month = parts[1]
-        val daysInMonth = java.time.YearMonth.of(year.toInt(), month.toInt()).lengthOfMonth()
-        return ("$year-$month-01" to "$year-$month-$daysInMonth")
-    }
+
 }

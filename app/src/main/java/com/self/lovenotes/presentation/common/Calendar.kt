@@ -1,5 +1,8 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.shape.CircleShape
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +36,7 @@ import kotlinx.coroutines.launch
 fun BasicPagerCalendar(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit = {},
+    markedDate: List<LocalDate> = emptyList(),
 ) {
     val today = LocalDate.now()
     val initialPage = 6
@@ -76,11 +80,11 @@ fun BasicPagerCalendar(
         ) { page ->
             val month = YearMonth.from(today)
                 .plusMonths((page - initialPage).toLong()) // 해당 페이지의 YearMonth 계산
-
             CalendarDays(
                 currentMonth = month,
                 selectedDate = selectedDate, // 선택된 날짜 로직 추가 필요
-                onDateSelected = onDateSelected
+                onDateSelected = onDateSelected,
+                markedDate = markedDate,
             )
         }
     }
@@ -137,6 +141,7 @@ fun CalendarDays(
     currentMonth: YearMonth,
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit,
+    markedDate: List<LocalDate> = emptyList(),
 ) {
     val firstDayOfMonth = currentMonth.atDay(1)
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek
@@ -147,19 +152,28 @@ fun CalendarDays(
 
     Column {
         for (week in 0..5) { // 최대 6주까지 표시
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 for (day in 0..6) {
                     val date = firstRowStart.plusDays((week * 7 + day).toLong())
                     if (date.yearMonth == currentMonth) {
                         DateView(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f),
                             date = date,
                             isSelected = date == selectedDate, // selectedDate 로직 수정 필요
-                            onDateSelected = onDateSelected
+                            onDateSelected = onDateSelected,
+                            isMarked = markedDate.any { it.isEqual(date) }
                         )
                     } else {
                         // 현재 달에 속하지 않는 날짜는 빈 공간으로 처리
-                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                        )
                     }
                 }
             }
@@ -172,23 +186,28 @@ fun DateView(
     modifier: Modifier,
     date: LocalDate,
     isSelected: Boolean,
+    isMarked: Boolean = true,
     onDateSelected: (LocalDate) -> Unit,
 ) {
     IconButton(
         enabled = !isSelected,
         onClick = { onDateSelected(date) },
-        modifier = modifier,
-        colors = IconButtonColors(
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = Color.Black,
-        )
+        modifier = modifier
+            .background(
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else if (isMarked) {
+                    MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.4f)
+                } else {
+                    Color.Transparent
+                },
+                shape = CircleShape
+            ),
 
-    ) {
+        ) {
         Text(
             text = date.dayOfMonth.toString(),
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             color = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.Black
         )
     }

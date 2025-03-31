@@ -30,16 +30,20 @@ class DateMemoryUsecase @Inject constructor(
         users.value = map
     }
 
-    suspend fun fetchMemories() = withContext(Dispatchers.IO) {
+    suspend fun fetchMemories(date: String) = withContext(Dispatchers.IO) {
         val myUid = userRepository.login() ?: return@withContext
 
-        val myMemories = dateMemoryRepository.getDateMemeoriesForUid(myUid)
-        val sharedMemories = dateMemoryRepository.getDateMemeoriesForShareWith(myUid)
+        val myMemories = dateMemoryRepository.getMontlyDateMemeoriesForUid(myUid, date)
+        val sharedMemories = dateMemoryRepository.getMontlyDateMemeoriesForShareWith(myUid, date)
 
-        memories.value = myMemories + sharedMemories
+        memories.value = (myMemories + sharedMemories).sortedBy { it.timeStamp }
     }
 
-    suspend fun deleteMemoriy(memory: DateMemory) = withContext(Dispatchers.IO) {
+    suspend fun updateMemory(memory: DateMemory) = withContext(Dispatchers.IO) {
+        dateMemoryRepository.updateDateMemory(memory)
+    }
+
+    suspend fun deleteMemory(memory: DateMemory) = withContext(Dispatchers.IO) {
         dateMemoryRepository.deleteDateMemory(memory)
     }
 }

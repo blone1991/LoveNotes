@@ -162,11 +162,6 @@ fun AppNavGraph(
                         SettingScreen()
                     }
 
-                    composable("TrackingResult") {
-                        TrackingResultScreen(onSave = { navController.navigate("Memory") })
-//                        TrackingResultScreen(onSave = { navController.popBackStack() })
-                    }
-
                     composable("Memory") {
                         DateMemoryScreen(navController = navController)
                     }

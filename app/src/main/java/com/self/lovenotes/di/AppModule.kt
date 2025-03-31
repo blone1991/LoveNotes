@@ -1,6 +1,7 @@
 package com.self.lovenotes.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -59,4 +60,9 @@ object AppModule {
     fun provideFusedLocationClient(@ApplicationContext context: Context): FusedLocationProviderClient {
         return LocationServices.getFusedLocationProviderClient(context)
     }
+
+    @Provides
+    @Singleton
+    fun provideSharedPreferrence(@ApplicationContext context: Context): SharedPreferences =
+        context.getSharedPreferences("LoveNotes", 0)
 }

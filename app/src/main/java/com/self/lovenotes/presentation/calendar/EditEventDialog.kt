@@ -186,10 +186,7 @@ fun EditEventDialog(
                         )
                         Text(text = "~")
                         OutlinedTextField(
-                            value = _event.endTime.substring(0, 2) + ":" + _event.endTime.substring(
-                                2,
-                                4
-                            ),
+                            value = _event.endTime.substring(0, 2) + ":" + _event.endTime.substring(2, 4),
                             onValueChange = {},
                             readOnly = true,
                             modifier = Modifier

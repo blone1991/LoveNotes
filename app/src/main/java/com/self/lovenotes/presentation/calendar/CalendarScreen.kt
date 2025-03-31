@@ -80,7 +80,8 @@ fun CalendarScreen(
         ) {
             BasicPagerCalendar(
                 selectedDate = LocalDate.parse(selectedDate, DateTimeFormatter.ISO_LOCAL_DATE),
-                onDateSelected = { date -> viewModel.selectDate(date.format(DateTimeFormatter.ISO_LOCAL_DATE)) }
+                onDateSelected = { date -> viewModel.selectDate(date.format(DateTimeFormatter.ISO_LOCAL_DATE)) },
+                markedDate = events.mapNotNull { LocalDate.parse(it.date, DateTimeFormatter.ISO_LOCAL_DATE) }
             )
         }
 

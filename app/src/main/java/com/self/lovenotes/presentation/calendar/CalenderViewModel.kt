@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 
@@ -17,7 +18,7 @@ import javax.inject.Inject
 class CalendarViewModel @Inject constructor(
     private val calendarUsecase: CalendarUsecase,
 ) : ViewModel() {
-    private val _selectedDate = MutableStateFlow(getCurrentDateString())
+    private val _selectedDate = MutableStateFlow(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE))
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
 
     private val _showEditEventDialog = MutableStateFlow<Event?>(null)
@@ -66,12 +67,6 @@ class CalendarViewModel @Inject constructor(
         viewModelScope.launch {
             calendarUsecase.fetchEvents(_selectedDate.value)
         }
-    }
-
-
-    private fun getCurrentDateString(): String {
-        val current = LocalDate.now()
-        return String.format("%d-%02d-%02d", current.year, current.monthValue, current.dayOfMonth)
     }
 
     fun formatDate(date: String): String {

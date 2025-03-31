@@ -156,7 +156,7 @@ fun SettingScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
-                        items(users.values.toList().drop(0)) {
+                        items(users.values.toList().drop(1)) {
                             NickNameCard(
                                 modifier = Modifier,
                                 user = it,

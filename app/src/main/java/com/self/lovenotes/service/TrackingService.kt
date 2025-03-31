@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -29,6 +30,10 @@ class TrackingService : Service() {
 
     @Inject
     lateinit var pathDao: PathDao
+
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
+
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private val locationCallback = object : LocationCallback() {
@@ -77,9 +82,17 @@ class TrackingService : Service() {
         return START_STICKY
     }
 
+    override fun stopService(name: Intent?): Boolean {
+        return super.stopService(name)
+
+        sharedPreferences.edit().putBoolean("TRACKING_SERVICE_RUNNING", false).apply()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         fusedLocationClient.removeLocationUpdates(locationCallback)
+
+        sharedPreferences.edit().putBoolean("TRACKING_SERVICE_RUNNING", false).apply()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

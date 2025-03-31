@@ -9,6 +9,8 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services") version "4.4.2"
     id("com.google.firebase.crashlytics")
+
+    id("kotlin-parcelize")
 }
 
 android {

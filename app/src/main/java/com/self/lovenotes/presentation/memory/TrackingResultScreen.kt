@@ -92,7 +92,9 @@ fun TrackingResultScreen(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         uri?.let {
-            selectedPhotoBitmap += MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+            utils.getRotatedBitmapFromUri(context, uri)?.let {
+                selectedPhotoBitmap += it
+            }
         }
     }
 
@@ -109,7 +111,7 @@ fun TrackingResultScreen(
                         LatLng(
                             (latitudeList.first() + latitudeList.last()) / 2,
                             (longitudeList.first() + longitudeList.last()) / 2
-                        ), 12f
+                        ), 15f
                     )
                 }
             }

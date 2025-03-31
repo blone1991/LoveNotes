@@ -53,17 +53,6 @@ fun DatePickerDialog(
                     verticalAlignment = Alignment.Top
                 ) {
                     TextButton(
-                        onClick = { onDateSelected(localDate); onDismiss() },
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.small,
-                    ) {
-                        Text(
-                            text = "Confirm",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                    TextButton(
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f),
                         shape = MaterialTheme.shapes.small,
@@ -71,6 +60,17 @@ fun DatePickerDialog(
                         Text(
                             text = "Cancel",
                             color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                    TextButton(
+                        onClick = { onDateSelected(localDate); onDismiss() },
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.small,
+                    ) {
+                        Text(
+                            text = "Confirm",
+                            color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }

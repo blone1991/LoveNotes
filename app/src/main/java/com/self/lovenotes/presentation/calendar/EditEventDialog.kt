@@ -243,6 +243,19 @@ fun EditEventDialog(
                     modifier = Modifier.align(Alignment.End),
                 ) {
                     TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.small,
+//                        colors = ButtonDefaults.buttonColors()
+//                            .copy(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                    TextButton(
                         onClick = {
                             if (_event.title.isEmpty()) {
                                 onError("Input Title")
@@ -265,19 +278,6 @@ fun EditEventDialog(
                         Text(
                             text = "Confirm",
                             color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.small,
-//                        colors = ButtonDefaults.buttonColors()
-//                            .copy(containerColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }

@@ -146,4 +146,6 @@ dependencies {
     // for Permissions
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
+    implementation ("androidx.exifinterface:exifinterface:1.3.7")
+
 }

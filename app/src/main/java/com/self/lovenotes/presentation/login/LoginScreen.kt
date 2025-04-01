@@ -1,6 +1,7 @@
 package com.self.lovenotes.presentation.login
 
 import android.Manifest
+import android.os.Build
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -57,11 +58,19 @@ fun LoginScreen(
     }
 
     val permissions =
-        mutableListOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.FOREGROUND_SERVICE,
-        )
-    
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mutableListOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.FOREGROUND_SERVICE,
+                Manifest.permission.POST_NOTIFICATIONS,
+            )
+        } else {
+            mutableListOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.FOREGROUND_SERVICE,
+            )
+        }
+
     val permissionLauncher = rememberMultiplePermissionsState(permissions)
 
     LaunchedEffect(permissionLauncher.allPermissionsGranted) {

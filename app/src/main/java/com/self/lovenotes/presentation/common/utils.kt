@@ -11,71 +11,65 @@ import java.io.InputStream
 import java.util.Base64
 
 object utils {
-
     fun getRotatedBitmapFromUri(context: Context, uri: Uri): Bitmap? {
-        // 1. Uri로부터 비트맵 생성
-        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        inputStream?.close()
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                if (bitmap == null) return null
 
-        if (bitmap == null) return null
-
-        // 2. Uri로부터 EXIF 데이터 읽기
-        val exifStream: InputStream? = context.contentResolver.openInputStream(uri)
-        val exif = exifStream?.let { ExifInterface(it) }
-        exifStream?.close()
-
-        val orientation = exif?.getAttributeInt(
-            ExifInterface.TAG_ORIENTATION,
-            ExifInterface.ORIENTATION_NORMAL
-        ) ?: ExifInterface.ORIENTATION_NORMAL
-
-        // 3. 회전 각도 계산
-        val rotationAngle = when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-            ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-            ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-            else -> 0f
-        }
-
-        // 4. 회전 적용
-        return if (rotationAngle != 0f) {
-            val matrix = Matrix().apply { postRotate(rotationAngle) }
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-        } else {
-            bitmap
+                context.contentResolver.openInputStream(uri)?.use { exifStream ->
+                    val exif = ExifInterface(exifStream)
+                    val orientation = exif.getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_NORMAL
+                    )
+                    val rotationAngle = when (orientation) {
+                        ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                        ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                        ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                        else -> 0f
+                    }
+                    if (rotationAngle != 0f) {
+                        val matrix = Matrix().apply { postRotate(rotationAngle) }
+                        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    } else {
+                        bitmap
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
     fun bitmapToBase64(bitmap: Bitmap): String {
-        val maxHeight = 300f
         val maxWidth = 300f
-        val frameRatio = maxHeight / maxWidth
+        val maxHeight = 300f
 
-        val bitmapHeight = bitmap.height.toFloat()
         val bitmapWidth = bitmap.width.toFloat()
-        val ratio = bitmapHeight / bitmapWidth
-
-        val scaledBitmap = if (ratio > frameRatio) {
-            Bitmap.createScaledBitmap(bitmap, (maxHeight / ratio).toInt(), 300, true) // 크기 조정
+        val bitmapHeight = bitmap.height.toFloat()
+        val scale = if (bitmapWidth > maxWidth || bitmapHeight > maxHeight) {
+            minOf(maxWidth / bitmapWidth, maxHeight / bitmapHeight)
         } else {
-            Bitmap.createScaledBitmap(bitmap, 300, (maxWidth / ratio).toInt(), true) // 크기 조정
+            1f
         }
 
+        val newWidth = (bitmapWidth * scale).toInt()
+        val newHeight = (bitmapHeight * scale).toInt()
+
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+
         val baos = ByteArrayOutputStream()
-
-        scaledBitmap.compress(Bitmap.CompressFormat.WEBP_LOSSLESS, 50, baos)
-
+        scaledBitmap.compress(Bitmap.CompressFormat.WEBP_LOSSLESS, 100, baos)
         return Base64.getEncoder().encodeToString(baos.toByteArray())
     }
 
-    fun base64ToBitmap(base64: String): android.graphics.Bitmap? =
+    fun base64ToBitmap(base64: String): Bitmap? =
         try {
             val decodedBytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
-
             BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
         } catch (e: IllegalArgumentException) {
-            // Base64 디코딩 실패 처리
             e.printStackTrace()
             null
         }

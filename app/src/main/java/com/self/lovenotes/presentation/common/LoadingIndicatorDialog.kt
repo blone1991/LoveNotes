@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -41,32 +42,36 @@ fun LoadingIndicatorDialog(
         ), label = ""
     )
 
-    Column(
+    Box (
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.Center
     ) {
-        Canvas(modifier = Modifier.size(size = 60.dp)) {
-            val startAngle = 5f
-            val sweepAngle = 350f
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Canvas(modifier = Modifier.size(size = 60.dp)) {
+                val startAngle = 5f
+                val sweepAngle = 350f
 
-            rotate(translateAnimation) {
-                drawArc(
-                    brush = Brush.sweepGradient(
-                        colors = listOf(
-                            color,
-                            color.copy(0f)
+                rotate(translateAnimation) {
+                    drawArc(
+                        brush = Brush.sweepGradient(
+                            colors = listOf(
+                                color,
+                                color.copy(0f)
+                            ),
+                            center = Offset(size.width / 2f, size.height / 2f)
                         ),
-                        center = Offset(size.width / 2f, size.height / 2f)
-                    ),
-                    startAngle = startAngle,
-                    sweepAngle = sweepAngle,
-                    useCenter = false,
-                    topLeft = Offset(6 / 2f, 6 / 2f),
-                    style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round),
-                )
+                        startAngle = startAngle,
+                        sweepAngle = sweepAngle,
+                        useCenter = false,
+                        topLeft = Offset(6 / 2f, 6 / 2f),
+                        style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round),
+                    )
+                }
             }
         }
     }
-
 }

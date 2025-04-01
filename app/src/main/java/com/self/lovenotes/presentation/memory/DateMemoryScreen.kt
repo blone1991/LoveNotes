@@ -32,11 +32,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.self.lovenotes.presentation.memory.DateMemoryViewModel
-import com.self.lovenotes.presentation.memory.MemoryCard
+import com.self.lovenotes.presentation.common.MemoryCard
 import com.self.lovenotes.presentation.memory.TrackingResultScreen
 import com.self.lovenotes.service.TrackingService
 import java.time.LocalDate
@@ -45,7 +44,6 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun DateMemoryScreen(
-    navController: NavController,
     viewModel: DateMemoryViewModel = hiltViewModel(),
 ) {
     val users by viewModel.users.collectAsState()
@@ -57,8 +55,6 @@ fun DateMemoryScreen(
     val showMemoryDialog by viewModel.showMemoryDialog.collectAsState()
 
     val permissions = listOf(
-//        Manifest.permission.ACCESS_FINE_LOCATION,
-//        Manifest.permission.FOREGROUND_SERVICE,
         Manifest.permission.ACCESS_BACKGROUND_LOCATION
     )
 
@@ -142,23 +138,22 @@ fun DateMemoryScreen(
                         )
                     }
 
-                    memories.firstOrNull { it.date == selectedDate }?.let {
+                    memories.filter { it.date == selectedDate }.sortedByDescending { it.timeStamp }.let {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            memories.sortedByDescending { it.date }.forEach { memory ->
+                            it.forEach { memory ->
                                 MemoryCard(
                                     memory = memory,
                                     onEdit =
-                                        if (memory.uid == users.keys.toList()[0]) {
-                                            { viewModel.openEditMemory(memory) }
-                                        } else {
-                                            null
-                                        }
-                                    ,
+                                    if (memory.uid == users.keys.toList()[0]) {
+                                        { viewModel.openEditMemory(memory) }
+                                    } else {
+                                        null
+                                    },
                                     onDelete = { viewModel.deleteMemory(memory) },
                                 )
                             }
@@ -176,13 +171,10 @@ fun DateMemoryScreen(
                 onClick = {
                     if (isTracking) {
                         context.stopService(Intent(context, TrackingService::class.java))
-//                navController.navigate("TrackingResult")
                         viewModel.stopTracking()
                     } else {
-                        context.startForegroundService(Intent(context, TrackingService::class.java))
                         viewModel.startTracking()
-
-
+                        context.startForegroundService(Intent(context, TrackingService::class.java))
                     }
                 },
                 modifier = Modifier.padding(16.dp), // 여백 추가

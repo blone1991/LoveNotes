@@ -1,5 +1,6 @@
 package com.self.lovenotes.presentation.planner
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,20 +11,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
 fun GeneratedPlanScreen(
-    viewModel: PlannerViewModel = hiltViewModel(),
+    markDownText: String,
     onDismiss: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val plan by viewModel.generatedPlan.collectAsState()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -41,20 +44,18 @@ fun GeneratedPlanScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
             MarkdownText(
-                markdown = plan,
+                markdown = markDownText,
                 modifier = Modifier.padding(top = 16.dp)
             )
             Button(
-                onClick = {
-                    viewModel.clearPlan()
-                    onDismiss()
-                },
+                onClick = { onDismiss() },
                 modifier = Modifier
                     .padding(top = 16.dp)
-                    .align(androidx.compose.ui.Alignment.End)
+                    .align(Alignment.End)
             ) {
                 Text("Close")
             }
         }
     }
+
 }

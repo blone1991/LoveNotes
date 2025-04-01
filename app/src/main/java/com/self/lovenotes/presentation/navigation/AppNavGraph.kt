@@ -43,9 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.self.lovenotes.presentation.calendar.CalendarScreen
 import com.self.lovenotes.presentation.login.LoginScreen
-import com.self.lovenotes.presentation.memory.TrackingResultScreen
 import com.self.lovenotes.presentation.memory.view.DateMemoryScreen
-import com.self.lovenotes.presentation.planner.GeneratedPlanScreen
 import com.self.lovenotes.presentation.planner.PlannerScreen
 import com.self.lovenotes.presentation.setting.SettingScreen
 
@@ -151,19 +149,13 @@ fun AppNavGraph(
                         Text("Journel")
                     }
                     composable("Planner") {
-                        PlannerScreen(navController = navController)
-                    }
-                    composable("GeneratedPlanScreen") { backStackEntry ->
-                        GeneratedPlanScreen(
-                            onDismiss = { navController.popBackStack() } // 뒤로 가기
-                        )
+                        PlannerScreen()
                     }
                     composable("Setting") {
                         SettingScreen()
                     }
-
                     composable("Memory") {
-                        DateMemoryScreen(navController = navController)
+                        DateMemoryScreen()
                     }
                 }
             }

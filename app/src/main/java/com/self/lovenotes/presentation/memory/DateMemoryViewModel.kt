@@ -60,6 +60,7 @@ class DateMemoryViewModel @Inject constructor(
 
     fun startTracking() {
         viewModelScope.launch {
+            pathDao.deletePaths()
             _isTracking.value = true
         }
     }

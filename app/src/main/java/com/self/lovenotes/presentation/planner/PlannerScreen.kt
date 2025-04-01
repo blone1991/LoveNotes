@@ -2,6 +2,7 @@ package com.self.lovenotes.presentation.planner
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -23,6 +23,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -44,7 +44,6 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun PlannerScreen(
-    navController: NavController,
     viewModel: PlannerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -57,10 +56,22 @@ fun PlannerScreen(
     val scrollState = rememberScrollState()
     val focusRequester = remember { FocusRequester() }
 
+    when (uiState) {
+        is UiState.Loading -> {
+            LoadingIndicatorDialog(color = MaterialTheme.colorScheme.primary)
+            return
+        }
+        is UiState.Success -> {
+            GeneratedPlanScreen(markDownText = (uiState as UiState.Success).plan, viewModel::resetUiState)
+            return
+        }
+        else -> {}
+    }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-//            .padding(16.dp)
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
@@ -148,7 +159,6 @@ fun PlannerScreen(
                     value = purpose,
                     onValueChange = { purpose = it },
                     isError = purpose.isEmpty(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     label = { Text("purpose of meeting") },
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = {
@@ -198,7 +208,6 @@ fun PlannerScreen(
                             location = location,
                             considerations = considerations
                         )
-
                     },
                 ) {
                     Text("Submit")
@@ -213,18 +222,5 @@ fun PlannerScreen(
             onDismiss = { datePickerDialogState = false },
             onDateSelected = { date = it }
         )
-    }
-
-// UiState에 따라 처리
-    when (uiState) {
-        is UiState.Loading -> {
-            LoadingIndicatorDialog(color = MaterialTheme.colorScheme.primary)
-        }
-
-        is UiState.Success -> {
-            navController.navigate("GeneratedPlanScreen") // 인자 없이 이동
-        }
-
-        else -> {}
     }
 }

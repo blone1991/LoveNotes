@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class)
 
-package com.self.lovenotes.presentation.memory
+package com.self.lovenotes.presentation.common
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -40,14 +40,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.self.lovenotes.data.remote.model.DateMemory
-import com.self.lovenotes.data.remote.model.User
-import com.self.lovenotes.presentation.common.utils
 
 @Composable
 fun MemoryCard(
@@ -148,12 +148,26 @@ fun MemoryCard(
                     zoomGesturesEnabled = true
                 )
             ) {
-                Polyline(
-                    points = memory.getLatLngList(),
-                    color = Color.Red,
-                    width = 20f,
-                    zIndex = 2f
-                )
+                val LatLngList = memory.getLatLngList()
+
+                if (LatLngList.isNotEmpty()) {
+                    Marker(
+                        state = MarkerState(position = LatLngList[0]),
+                        title = "Start"
+                    )
+
+                    Marker(
+                        state = MarkerState(position = LatLngList[LatLngList.size -1]),
+                        title = "End"
+                    )
+
+                    Polyline(
+                        points = LatLngList,
+                        color = Color.Red,
+                        width = 20f,
+                        zIndex = 2f
+                    )
+                }
             }
 
             if (isExpanded && memory.photoBase64.isNotEmpty()) {
@@ -163,7 +177,7 @@ fun MemoryCard(
                     items(memory.photoBase64.mapNotNull {
                         utils.base64ToBitmap(it)?.asImageBitmap()
                     }) {
-                        Image(
+                        Image (
                             bitmap = it,
                             contentDescription = "Memory Photo",
                             modifier = Modifier

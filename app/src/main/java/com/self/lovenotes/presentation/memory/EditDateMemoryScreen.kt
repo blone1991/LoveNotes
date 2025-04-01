@@ -1,11 +1,9 @@
 package com.self.lovenotes.presentation.memory
 
-import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -53,11 +51,14 @@ import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.self.lovenotes.data.remote.model.DateMemory
 import com.self.lovenotes.data.remote.model.User
 import com.self.lovenotes.presentation.common.DatePickerDialog
+import com.self.lovenotes.presentation.common.ImagePickerComposable
 import com.self.lovenotes.presentation.common.ToggleChip
 import com.self.lovenotes.presentation.common.utils
 import java.time.LocalDate
@@ -224,12 +225,25 @@ fun TrackingResultScreen(
                         .height(200.dp),
                     cameraPositionState = cameraPositionState,
                 ) {
-                    Polyline(
-                        points = dateMemory.getLatLngList(),
-                        color = Color.Red,
-                        width = 20f,
-                        zIndex = 2f
-                    )
+                    val LatLngList = dateMemory.getLatLngList()
+                    if (LatLngList.isNotEmpty()) {
+                        Marker(
+                            state = MarkerState(position = LatLngList[0]),
+                            title = "Start"
+                        )
+
+                        Marker(
+                            state = MarkerState(position = LatLngList[LatLngList.size -1]),
+                            title = "End"
+                        )
+
+                        Polyline(
+                            points = LatLngList,
+                            color = Color.Red,
+                            width = 20f,
+                            zIndex = 2f
+                        )
+                    }
                 }
             }
         }
@@ -254,18 +268,15 @@ fun TrackingResultScreen(
                 ) {
                     items(3) { i ->
                         selectedPhotoBitmap.getOrNull(i)?.let {
-                            Image(
+                            ImagePickerComposable(
+                                width = 200.dp,
+                                height = 200.dp,
                                 bitmap = it.asImageBitmap(),
-                                modifier = Modifier
-                                    .width(200.dp)
-                                    .height(200.dp)
-                                    .clickable {
-                                        selectedPhotoBitmap =
-                                            selectedPhotoBitmap.filter { bitmap -> bitmap != it }
-                                    },
-
+                                modifier = Modifier,
+                                onCancel = {selectedPhotoBitmap =
+                                    selectedPhotoBitmap.filter { bitmap -> bitmap != it }},
 //                                painter = rememberAsyncImagePainter(it),
-                                contentDescription = null,
+                                contentDescription = "",
                                 contentScale = ContentScale.Fit // 추가: 이미지 비율 유지
                             )
                         } ?: Box(

@@ -7,12 +7,15 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,6 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -38,14 +43,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.google.android.gms.maps.model.AdvancedMarker
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.self.lovenotes.R
 import com.self.lovenotes.data.remote.model.DateMemory
 
 @Composable
@@ -61,6 +74,14 @@ fun MemoryCard(
     val elevation by animateDpAsState(if (isExpanded) 15.dp else 4.dp, label = "")
 
     val cameraPositionState = rememberCameraPositionState()
+
+    val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.marker))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever, // 반복 횟수 설정 (무한 반복: LottieConstants.IterateForever)
+        isPlaying = true // 애니메이션 재생 여부
+    )
+
 
     Card(
         modifier = Modifier
@@ -151,19 +172,39 @@ fun MemoryCard(
                 val LatLngList = memory.getLatLngList()
 
                 if (LatLngList.isNotEmpty()) {
-                    Marker(
-                        state = MarkerState(position = LatLngList[0]),
-                        title = "Start"
-                    )
 
-                    Marker(
+                    MarkerComposable(
+                        state = MarkerState(position = LatLngList[0]),
+                        title = "Start",
+
+                    ) {
+                        Box(modifier = Modifier.size(50.dp).offset(y = 15.dp),
+                            contentAlignment = Alignment.BottomCenter) {
+                            LottieAnimation(
+                                composition = composition,
+                                progress = { progress },
+                            )
+                        }
+//                        Icon(imageVector = Icons.Default.Face, contentDescription = "Start")
+                    }
+
+                    MarkerComposable(
                         state = MarkerState(position = LatLngList[LatLngList.size -1]),
                         title = "End"
-                    )
+                    ){
+                        Box(modifier = Modifier.size(50.dp).offset(y = 15.dp),
+                            contentAlignment = Alignment.BottomCenter) {
+                            LottieAnimation(
+                                composition = composition,
+                                progress = { progress },
+                            )
+                        }
+                    }
+
 
                     Polyline(
                         points = LatLngList,
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                         width = 20f,
                         zIndex = 2f
                     )

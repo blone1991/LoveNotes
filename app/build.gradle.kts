@@ -150,4 +150,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     implementation ("androidx.exifinterface:exifinterface:1.3.7")
+
+    implementation ("com.airbnb.android:lottie-compose:6.1.0") // 최신 버전 확인 후 적용
+
 }

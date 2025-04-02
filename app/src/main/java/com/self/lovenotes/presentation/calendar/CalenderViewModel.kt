@@ -26,7 +26,7 @@ class CalendarViewModel @Inject constructor(
 
     private val _showEditEventDialog = MutableStateFlow<Event?>(null)
     val showEventDialog = _showEditEventDialog.asStateFlow()
-
+    val selectedMonth = calendarUsecase.selectedMonth
     val users = calendarUsecase.users
     val events = calendarUsecase.events.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
@@ -48,7 +48,7 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun fetchEventMonth (yearMonth: YearMonth) {
+    fun onChangeMonth (yearMonth: YearMonth) {
         calendarUsecase.onChangeMonth(yearMonth)
     }
 

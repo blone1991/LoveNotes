@@ -229,7 +229,8 @@ fun TrackingResultScreen(
                     if (LatLngList.isNotEmpty()) {
                         Marker(
                             state = MarkerState(position = LatLngList[0]),
-                            title = "Start"
+                            title = "Start",
+
                         )
 
                         Marker(
@@ -239,7 +240,7 @@ fun TrackingResultScreen(
 
                         Polyline(
                             points = LatLngList,
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                             width = 20f,
                             zIndex = 2f
                         )

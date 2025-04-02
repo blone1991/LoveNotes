@@ -44,10 +44,10 @@ fun CalendarScreen(
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
     val users by viewModel.users.collectAsState()
-    val events by viewModel.events.collectAsState(emptyList())
-
+    val events by viewModel.events.collectAsState()
+    val selectedMonth by viewModel.selectedMonth.collectAsState()
     var selectedDate by remember {mutableStateOf(LocalDate.now())}
-    val showEventDialog by viewModel.showEventDialog.collectAsState()
+    var showEventDialog by remember { mutableStateOf<Event?>(null) }
     val scrollState = rememberScrollState()
 
     val localSnackbarHostState = LocalSnackbarHostState.current
@@ -83,93 +83,100 @@ fun CalendarScreen(
             BasicPagerCalendar(
                 selectedDate = selectedDate,
                 onDateSelected = { date -> selectedDate = date },
-                onChangedMonth = viewModel::fetchEventMonth,
-                markedDate = events.mapNotNull { LocalDate.parse(it.date, DateTimeFormatter.ISO_LOCAL_DATE) }
+                onChangedMonth = viewModel::onChangeMonth,
+                markedDate = events.mapNotNull {
+                    LocalDate.parse(
+                        it.date,
+                        DateTimeFormatter.ISO_LOCAL_DATE
+                    )
+                }
             )
         }
 
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surfaceBright,
-            tonalElevation = 4.dp,
-            shadowElevation = 4.dp,
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
+        if (selectedDate.year == selectedMonth.year && selectedDate.monthValue == selectedMonth.monthValue) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceBright,
+                tonalElevation = 4.dp,
+                shadowElevation = 4.dp,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    Text(
-                        text = viewModel.formatDate(selectedDate),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    TextButton(
-                        onClick = {
-                            viewModel.showEditEventDialog(
-                                event = Event(
-                                    uid = users.firstNotNullOf { it.uid },
-                                    title = "",
-                                    date = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                                    fullday = true,
-                                )
-                            )
-                        },
-//                        modifier = Modifier.align(Alignment.End),
-                        colors = ButtonDefaults.buttonColors()
-                            .copy(containerColor = MaterialTheme.colorScheme.primary)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        Text(
+                            text = viewModel.formatDate(selectedDate),
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        TextButton(
+                            onClick = {
+                                showEventDialog = Event(
+                                        uid = users.firstNotNullOf { it.uid },
+                                        title = "",
+                                        date = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                                        fullday = true,
+                                    )
+
+                            },
+//                        modifier = Modifier.align(Alignment.End),
+                            colors = ButtonDefaults.buttonColors()
+                                .copy(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
-                            Icon(imageVector = Tabler.Outline.CalendarPlus, "")
-                            Text(
-                                text = "Add Event",
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                style = MaterialTheme.typography.bodyLarge
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Icon(imageVector = Tabler.Outline.CalendarPlus, "")
+                                Text(
+                                    text = "Add Event",
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
+
+
+                    val dailyEvents =
+                        events.filter { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) }
+                    if (dailyEvents.isEmpty()) {
+                        Text(
+                            text = "No events for this day",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    } else {
+                        dailyEvents.forEach { event ->
+                            EventCard(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                event = event,
+                                author = users.filter { it.uid == event.id }.firstOrNull()?.nickname
+                                    ?: "UnKnown",
+                                onEdit = { showEventDialog = event },
+                                onDelete = { viewModel.deleteEvent(event) }
                             )
                         }
-
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-
-                val dailyEvents = events.filter { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) }
-                if (dailyEvents.isEmpty()) {
-                    Text(
-                        text = "No events for this day",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                } else {
-                    dailyEvents.forEach { event ->
-                        EventCard(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            event = event,
-                            author = users.filter { it.uid == event.id }.firstOrNull()?.nickname ?: "UnKnown",
-                            onEdit = { viewModel.showEditEventDialog(event) },
-                            onDelete = { viewModel.deleteEvent(event) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
-
     if (showEventDialog != null) {
         EditEventDialog(
             event = showEventDialog!!,
             onSubmit = { viewModel.submitEvent(it) },
-            onDismiss = { viewModel.showEditEventDialog(null) },
+            onDismiss = { showEventDialog = null },
             onError = { snackbarMessage = it }
         )
     }

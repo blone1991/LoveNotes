@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import okhttp3.internal.format
@@ -31,14 +33,22 @@ class CalendarUsecase @Inject constructor(
     private val _selectedMonth = MutableStateFlow(YearMonth.now())
     val selectedMonth = _selectedMonth.asStateFlow()
 
+    // 캐시 저장소
+    private val eventCache = mutableMapOf<String, List<Event>>()
+
     val events: Flow<List<Event>> = combine(users, selectedMonth) { userList, yearMonth ->
         Pair(userList.map { it.uid }, yearMonth)
     }.flatMapLatest { (userIds, yearMonth) ->
         if (userIds.isEmpty()) {
             flowOf(emptyList()) // 타입 명시
         } else {
-            eventRepository.getEventsMontlyFlow(userIds, yearMonth)
+            val cachedFlow = flowOf(eventCache[yearMonth.toString()] ?: emptyList<Event>())
+            val serverFlow = eventRepository.getEventsMontlyFlow(userIds, yearMonth)
+
+            merge(cachedFlow, serverFlow)
         }
+    }.onEach {
+        eventCache[selectedMonth.toString()] = it
     }.flowOn(Dispatchers.IO)
 
 
@@ -53,6 +63,4 @@ class CalendarUsecase @Inject constructor(
     suspend fun deleteEvent(event: Event) = withContext(Dispatchers.IO) {
         eventRepository.deleteEvent(event)
     }
-
-
 }

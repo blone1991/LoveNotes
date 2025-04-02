@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 fun BasicPagerCalendar(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit = {},
+    onChangedMonth: (YearMonth) -> Unit = {},
     markedDate: List<LocalDate> = emptyList(),
 ) {
     val today = LocalDate.now()
@@ -49,6 +50,10 @@ fun BasicPagerCalendar(
     LaunchedEffect(pagerState.currentPage) {
         currentMonth.value =
             YearMonth.from(today).plusMonths((pagerState.currentPage - initialPage).toLong())
+    }
+
+    SideEffect {
+        onChangedMonth(currentMonth.value)
     }
 
     Column(

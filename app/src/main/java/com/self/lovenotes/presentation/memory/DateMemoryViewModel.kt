@@ -7,23 +7,29 @@ import com.self.lovenotes.data.local.dao.PathDao
 import com.self.lovenotes.data.remote.model.DateMemory
 import com.self.lovenotes.domain.usecase.DateMemoryUsecase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 
+@ExperimentalCoroutinesApi
 @HiltViewModel
 class DateMemoryViewModel @Inject constructor(
     private val dateMemoryUsecase: DateMemoryUsecase,
     private val sharedPreferences: SharedPreferences,
     private val pathDao: PathDao,
 ) : ViewModel() {
-    val users = dateMemoryUsecase.users.asStateFlow()
-    val memories = dateMemoryUsecase.memories.asStateFlow()
+    val users = dateMemoryUsecase.users
+    val memories = dateMemoryUsecase.memories
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _isTracking =
         MutableStateFlow(sharedPreferences.getBoolean("TRACKING_SERVICE_RUNNING", false))
@@ -36,27 +42,6 @@ class DateMemoryViewModel @Inject constructor(
     private val _showEditMemoryDialog = MutableStateFlow<DateMemory?>(null)
     val showMemoryDialog = _showEditMemoryDialog.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            dateMemoryUsecase.fetchUsers()
-            fetchMemories()
-        }
-    }
-
-    fun fetchMemories() {
-        viewModelScope.launch {
-            dateMemoryUsecase.fetchMemories(_selectedDate.value)
-        }
-    }
-
-    fun selectDate(date: String) {
-        val oldYearMonth = _selectedDate.value.substring(0, 7)
-        val newYearMonth = date.substring(0, 7)
-        _selectedDate.value = date
-        if (oldYearMonth != newYearMonth) {
-            fetchMemories()
-        }
-    }
 
     fun startTracking() {
         viewModelScope.launch {
@@ -72,10 +57,14 @@ class DateMemoryViewModel @Inject constructor(
             val pathEntityList = pathDao.getPaths()
 
             _showEditMemoryDialog.value = DateMemory(
-                uid = users.value.keys.toList()[0],
+                uid = users.value.map { it.uid }[0],
                 geoList = pathEntityList.map { it.latlng },
             )
         }
+    }
+
+    fun fetchDateMemoryMonth (yearMonth: YearMonth) {
+        dateMemoryUsecase.onChangeMonth(yearMonth)
     }
 
 
@@ -91,16 +80,12 @@ class DateMemoryViewModel @Inject constructor(
     fun updateMemory(dateMemory: DateMemory) {
         viewModelScope.launch {
             dateMemoryUsecase.updateMemory(dateMemory)
-
-            fetchMemories()
         }
     }
 
     fun deleteMemory(dateMemory: DateMemory) {
         viewModelScope.launch {
             dateMemoryUsecase.deleteMemory(dateMemory)
-
-            fetchMemories()
         }
     }
 }

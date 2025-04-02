@@ -40,7 +40,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
@@ -52,7 +51,8 @@ import com.self.lovenotes.data.remote.model.DateMemory
 @Composable
 fun MemoryCard(
     memory: DateMemory,
-    onEdit: (() -> Unit)? = null,
+    isOwner: Boolean,
+    onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
     onDoubleClick: (() -> Unit)? = null,
@@ -91,15 +91,15 @@ fun MemoryCard(
                     style = MaterialTheme.typography.headlineLarge
                 )
 
-                Row {
-                    onEdit?.let {
-                        IconButton(onClick = it) {
+                if (isOwner) {
+                    Row {
+                        IconButton(onClick = onEdit) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
                         }
-                    }
 
-                    IconButton(onClick = onDelete) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")
+                        IconButton(onClick = onDelete) {
+                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")
+                        }
                     }
                 }
             }

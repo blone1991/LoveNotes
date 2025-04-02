@@ -34,17 +34,19 @@ import com.self.lovenotes.presentation.navigation.LocalSnackbarHostState
 import com.woowla.compose.icon.collections.tabler.Tabler
 import com.woowla.compose.icon.collections.tabler.tabler.Outline
 import com.woowla.compose.icon.collections.tabler.tabler.outline.CalendarPlus
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@ExperimentalCoroutinesApi
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
     val users by viewModel.users.collectAsState()
-    val events by viewModel.events.collectAsState()
+    val events by viewModel.events.collectAsState(emptyList())
 
-    val selectedDate by viewModel.selectedDate.collectAsState()
+    var selectedDate by remember {mutableStateOf(LocalDate.now())}
     val showEventDialog by viewModel.showEventDialog.collectAsState()
     val scrollState = rememberScrollState()
 
@@ -79,8 +81,9 @@ fun CalendarScreen(
             shadowElevation = 4.dp,
         ) {
             BasicPagerCalendar(
-                selectedDate = LocalDate.parse(selectedDate, DateTimeFormatter.ISO_LOCAL_DATE),
-                onDateSelected = { date -> viewModel.selectDate(date.format(DateTimeFormatter.ISO_LOCAL_DATE)) },
+                selectedDate = selectedDate,
+                onDateSelected = { date -> selectedDate = date },
+                onChangedMonth = viewModel::fetchEventMonth,
                 markedDate = events.mapNotNull { LocalDate.parse(it.date, DateTimeFormatter.ISO_LOCAL_DATE) }
             )
         }
@@ -112,9 +115,9 @@ fun CalendarScreen(
                         onClick = {
                             viewModel.showEditEventDialog(
                                 event = Event(
-                                    uid = users.keys.toList()[0],
+                                    uid = users.firstNotNullOf { it.uid },
                                     title = "",
-                                    date = selectedDate,
+                                    date = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
                                     fullday = true,
                                 )
                             )
@@ -138,7 +141,7 @@ fun CalendarScreen(
                     }
                 }
 
-                val dailyEvents = events.filter { it.date == selectedDate }
+                val dailyEvents = events.filter { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) }
                 if (dailyEvents.isEmpty()) {
                     Text(
                         text = "No events for this day",
@@ -151,7 +154,7 @@ fun CalendarScreen(
                         EventCard(
                             modifier = Modifier.padding(vertical = 8.dp),
                             event = event,
-                            author = users[event.uid]?.nickname ?: "UnKnown",
+                            author = users.filter { it.uid == event.id }.firstOrNull()?.nickname ?: "UnKnown",
                             onEdit = { viewModel.showEditEventDialog(event) },
                             onDelete = { viewModel.deleteEvent(event) }
                         )

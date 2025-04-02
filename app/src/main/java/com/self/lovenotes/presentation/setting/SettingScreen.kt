@@ -48,7 +48,7 @@ fun SettingScreen(
             Column(
                 modifier = Modifier.padding(13.dp)
             ) {
-                if (users.values.toList()[0].nickname.isNotEmpty()) {
+                if (users[0].nickname.isNotEmpty()) {
                     Text(
                         "Your invitation code",
                         color = MaterialTheme.colorScheme.onSurface,
@@ -58,7 +58,7 @@ fun SettingScreen(
                         modifier = Modifier
                             .padding(20.dp)
                             .align(Alignment.CenterHorizontally),
-                        text = users.values.toList()[0].invitationCode,
+                        text = users[0].invitationCode,
                         color = MaterialTheme.colorScheme.secondary,
                         style = MaterialTheme.typography.headlineMedium
                     )
@@ -150,13 +150,13 @@ fun SettingScreen(
                     style = MaterialTheme.typography.headlineLarge
                 )
 
-                if (users.values.size > 1) {
+                if (users.size > 1) {
                     LazyColumn(
                         userScrollEnabled = true,
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
-                        items(users.values.toList().drop(1)) {
+                        items(users.drop(1)) {
                             NickNameCard(
                                 modifier = Modifier,
                                 user = it,

@@ -5,79 +5,58 @@ import androidx.lifecycle.viewModelScope
 import com.self.lovenotes.data.remote.model.Event
 import com.self.lovenotes.domain.usecase.CalendarUsecase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.time.YearMonth
 import javax.inject.Inject
 
 
+@ExperimentalCoroutinesApi
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val calendarUsecase: CalendarUsecase,
 ) : ViewModel() {
-    private val _selectedDate = MutableStateFlow(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE))
-    val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
+//    private val _selectedDate = MutableStateFlow(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE))
+//    val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
 
     private val _showEditEventDialog = MutableStateFlow<Event?>(null)
     val showEventDialog = _showEditEventDialog.asStateFlow()
 
-    val users = calendarUsecase.users.asStateFlow()
-    val events = calendarUsecase.events.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            calendarUsecase.fetchUsers()
-            calendarUsecase.fetchEvents(_selectedDate.value)
-        }
-    }
+    val users = calendarUsecase.users
+    val events = calendarUsecase.events.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
+    )
 
     fun showEditEventDialog(event: Event?) {
         _showEditEventDialog.value = event
     }
 
-
-    fun selectDate(date: String) {
-        val oldYearMonth = _selectedDate.value.substring(0, 7)
-        val newYearMonth = date.substring(0, 7)
-        _selectedDate.value = date
-        if (oldYearMonth != newYearMonth) {
-            fetchEvents()
-        }
-    }
-
     fun submitEvent(event: Event) {
         viewModelScope.launch {
             calendarUsecase.updateEvent(event)
-            fetchEvents()
         }
     }
 
     fun deleteEvent(event: Event) {
         viewModelScope.launch {
             calendarUsecase.deleteEvent(event)
-
-            fetchEvents()
         }
     }
 
-    fun fetchEvents() {
-        viewModelScope.launch {
-            calendarUsecase.fetchEvents(_selectedDate.value)
-        }
+    fun fetchEventMonth (yearMonth: YearMonth) {
+        calendarUsecase.onChangeMonth(yearMonth)
     }
 
-    fun formatDate(date: String): String {
-        val parts = date.split("-")
-        if (parts.size == 3) {
-            val year = parts[0].toInt()
-            val month = parts[1].toInt()
-            val day = parts[2].toInt()
-            return "${getMonthName(month)} $day, $year"
-        }
-        return date
+    fun formatDate(date: LocalDate): String {
+        val year = date.year
+        val month = date.monthValue
+        val day = date.dayOfMonth
+        return "${getMonthName(month)} $day, $year"
     }
 
     private fun getMonthName(month: Int): String {

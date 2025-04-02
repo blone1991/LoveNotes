@@ -3,7 +3,12 @@ package com.self.lovenotes.data.remote.repository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.self.lovenotes.data.remote.model.DateMemory
 import com.self.lovenotes.data.util.utils.getMonthRange
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
+import java.time.YearMonth
 import javax.inject.Inject
 
 class DateMemoryRepository @Inject constructor(
@@ -38,8 +43,8 @@ class DateMemoryRepository @Inject constructor(
             .await()
     }
 
-    suspend fun getMontlyDateMemeoriesForUid(uid: String, date: String): List<DateMemory> {
-        val (startDate, endDate) = getMonthRange(date)
+    suspend fun getMontlyDateMemeoriesForUid(uid: String, yearMonth: YearMonth): List<DateMemory> {
+        val (startDate, endDate) = getMonthRange(yearMonth)
         val querySnapshot = firestore
             .collection("date_memories")
             .whereEqualTo("uid", uid)
@@ -50,8 +55,8 @@ class DateMemoryRepository @Inject constructor(
         return querySnapshot.documents.map { DateMemory(it) }
     }
 
-    suspend fun getMontlyDateMemeoriesForShareWith(uid: String, date: String): List<DateMemory> {
-        val (startDate, endDate) = getMonthRange(date)
+    suspend fun getMontlyDateMemeoriesForShareWith(uid: String, yearMonth: YearMonth): List<DateMemory> {
+        val (startDate, endDate) = getMonthRange(yearMonth)
         val querySnapshot = firestore
             .collection("date_memories")
             .whereArrayContains("shareWith", uid)
@@ -62,4 +67,45 @@ class DateMemoryRepository @Inject constructor(
         return querySnapshot.documents.map { DateMemory(it) }
     }
 
+    fun getMyMemoriesFlow (uid: String, yearMonth: YearMonth) = callbackFlow<List<DateMemory>> {
+        val (startDate, endDate) = getMonthRange(yearMonth)
+        val query = firestore.collection("date_memories")
+            .whereEqualTo("uid", uid)
+            .whereGreaterThanOrEqualTo("date", startDate)
+            .whereLessThanOrEqualTo("date", endDate)
+        val listener = query.addSnapshotListener { value, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+
+            value?.documents?.let {
+                trySend(it.map { DateMemory(it) })
+            } ?: run {
+                trySend(emptyList())
+            }
+        }
+        awaitClose { listener.remove() }
+    }.flowOn(Dispatchers.IO)
+
+    fun getSharedMemoriesFlow (uid: String, yearMonth: YearMonth) = callbackFlow<List<DateMemory>> {
+        val (startDate, endDate) = getMonthRange(yearMonth)
+        val query = firestore.collection("date_memories")
+            .whereArrayContains("shareWith", uid)
+            .whereGreaterThanOrEqualTo("date", startDate)
+            .whereLessThanOrEqualTo("date", endDate)
+        val listener = query.addSnapshotListener { value, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+
+            value?.documents?.let {
+                trySend(it.map { DateMemory(it) })
+            } ?: run {
+                trySend(emptyList())
+            }
+        }
+        awaitClose { listener.remove() }
+    }.flowOn(Dispatchers.IO)
 }

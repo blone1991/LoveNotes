@@ -1,11 +1,15 @@
 package com.self.lovenotes.data.remote.repository
 
 import android.util.Log
-import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.self.lovenotes.data.remote.model.User
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.callbackFlow
 
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -17,6 +21,59 @@ class UserRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) {
     fun login(): String? = auth.currentUser?.uid
+
+    var _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+
+    var _userInfos = MutableStateFlow<List<User>>(listOf())
+    val userInfos = _userInfos.asStateFlow()
+
+    init {
+        auth.addAuthStateListener { firebaseAuth ->
+            firebaseAuth.currentUser?.let {
+                listenToCurrentUser(it.uid)
+            } ?: run {
+                _currentUser.value = null
+            }
+        }
+    }
+
+    private fun listenToCurrentUser(uid: String) {
+        firestore.collection("users")
+            .document(uid)
+            .addSnapshotListener { doc, error ->
+                if (error != null) {
+                    Log.e("FirebaseRepository", "Error fetching user: $error")
+                    return@addSnapshotListener
+                }
+
+                val user = doc?.let { User(doc) }
+                _currentUser.value = user
+                user?.subscribing?.let { fetchSubscribingUsers(it) } ?: run {
+                    _userInfos.value = emptyList()
+                }
+            }
+    }
+
+    private fun fetchSubscribingUsers(subscribedUids: List<String>) {
+        var usersList = listOf(_currentUser.value!!)
+
+        if (subscribedUids.isEmpty()) {
+            _userInfos.value = usersList
+            return
+        }
+
+        firestore.collection("users")
+            .whereIn("uid", subscribedUids)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("FirebaseRepository", "Error fetching subscribed users: $error")
+                    return@addSnapshotListener
+                }
+                _userInfos.value = usersList + (snapshot?.documents?.mapNotNull { User(it) } ?: emptyList())
+            }
+    }
+
 
     suspend fun getUser(uid: String? = null): User? = withContext(Dispatchers.IO) {
         try {

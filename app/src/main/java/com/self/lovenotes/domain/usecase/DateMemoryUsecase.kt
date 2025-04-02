@@ -5,38 +5,46 @@ import com.self.lovenotes.data.remote.model.User
 import com.self.lovenotes.data.remote.repository.DateMemoryRepository
 import com.self.lovenotes.data.remote.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.time.YearMonth
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 class DateMemoryUsecase @Inject constructor(
     private val userRepository: UserRepository,
     private val dateMemoryRepository: DateMemoryRepository,
 ) {
-    val users = MutableStateFlow<Map<String, User>>(emptyMap()) // [0] : 내 정보 [1 ~ ] 내가 구독하는 User 정보
-    val memories = MutableStateFlow<List<DateMemory>>(emptyList())
+    val users = userRepository.userInfos
 
-    suspend fun fetchUsers() = withContext(Dispatchers.IO) {
-        val map: MutableMap<String, User> = mutableMapOf()
+    private val _selectedMonth = MutableStateFlow(YearMonth.now())
+    val selectedMonth = _selectedMonth.asStateFlow()
 
-        val myUid = userRepository.login() ?: return@withContext
-        val my = userRepository.getUser(myUid) ?: return@withContext
+    val memories: Flow<List<DateMemory>> = combine(
+        selectedMonth,
+        users // 내 UID 가져오기
+    ) { yearMonth, currentUser ->
+        Pair(yearMonth, users.value.map { it.uid }.first())
+    }.flatMapLatest { (yearMonth, myUid) ->
+        combine(
+            dateMemoryRepository.getMyMemoriesFlow(myUid, yearMonth),
+            dateMemoryRepository.getSharedMemoriesFlow(myUid, yearMonth)
+        ) { shared, mine ->
+            (shared + mine).distinctBy { it.id } // 병합 후 중복 제거
+        }
+    }.flowOn(Dispatchers.IO)
 
-        map[my.uid] = my
-        my.subscribing
-            .mapNotNull { userRepository.getUser(it) }
-            .forEach { map.put(it.uid, it) }
-
-        users.value = map
-    }
-
-    suspend fun fetchMemories(date: String) = withContext(Dispatchers.IO) {
-        val myUid = userRepository.login() ?: return@withContext
-
-        val myMemories = dateMemoryRepository.getMontlyDateMemeoriesForUid(myUid, date)
-        val sharedMemories = dateMemoryRepository.getMontlyDateMemeoriesForShareWith(myUid, date)
-
-        memories.value = (myMemories + sharedMemories).sortedBy { it.timeStamp }
+    fun onChangeMonth (yearMonth: YearMonth) {
+        _selectedMonth.value = yearMonth
     }
 
     suspend fun updateMemory(memory: DateMemory) = withContext(Dispatchers.IO) {

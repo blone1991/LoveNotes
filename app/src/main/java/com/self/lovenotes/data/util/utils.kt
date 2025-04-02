@@ -3,6 +3,8 @@ package com.self.lovenotes.data.util
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import java.io.ByteArrayOutputStream
+import java.time.Month
+import java.time.YearMonth
 import java.util.Base64
 
 object utils {
@@ -12,6 +14,13 @@ object utils {
         val year = parts[0]
         val month = parts[1]
         val daysInMonth = java.time.YearMonth.of(year.toInt(), month.toInt()).lengthOfMonth()
+        return ("$year-$month-01" to "$year-$month-$daysInMonth")
+    }
+
+    fun getMonthRange(yearMonth: YearMonth): Pair<String, String> {
+        val year = yearMonth.year
+        val month = String.format("%02d",yearMonth.monthValue)
+        val daysInMonth = yearMonth.lengthOfMonth()
         return ("$year-$month-01" to "$year-$month-$daysInMonth")
     }
 

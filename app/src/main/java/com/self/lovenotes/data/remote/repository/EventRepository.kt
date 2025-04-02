@@ -2,11 +2,17 @@ package com.self.lovenotes.data.remote.repository
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import com.self.lovenotes.data.remote.model.Event
 import com.self.lovenotes.data.util.utils.getMonthRange
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.time.YearMonth
 import javax.inject.Inject
 
 class EventRepository @Inject constructor(
@@ -77,5 +83,24 @@ class EventRepository @Inject constructor(
             }
         }
 
+    fun getEventsMontlyFlow(uids: List<String>, yearMonth: YearMonth) = callbackFlow<List<Event>> {
+        val (startDate, endDate) = getMonthRange(yearMonth)
+        val query = firestore.collection("events")
+            .whereIn("uid", uids)
+            .whereGreaterThanOrEqualTo("date", startDate)
+            .whereLessThanOrEqualTo("date", endDate)
+        val listener = query.addSnapshotListener { value, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
 
+            value?.let {
+                trySend(it.map { Event(it) })
+            } ?: run {
+                trySend(emptyList())
+            }
+        }
+        awaitClose { listener.remove() }
+    }.flowOn(Dispatchers.IO)
 }

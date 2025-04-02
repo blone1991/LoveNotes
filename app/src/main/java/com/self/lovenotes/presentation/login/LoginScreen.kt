@@ -41,7 +41,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     onLogin: () -> Unit,
 ) {
-    val users by viewModel.user.collectAsState()
+    val users by viewModel.users.collectAsState()
     var permissionReady by remember { mutableStateOf(false) }
     val error by viewModel.error.collectAsState()
 
@@ -121,7 +121,7 @@ fun LoginScreen(
             )
         }
     } else {
-        viewModel.fetchUsers()
+//        viewModel.fetchUsers()
         onLogin()
     }
 

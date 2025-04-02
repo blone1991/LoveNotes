@@ -26,6 +26,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,9 +41,11 @@ import com.self.lovenotes.presentation.memory.DateMemoryViewModel
 import com.self.lovenotes.presentation.common.MemoryCard
 import com.self.lovenotes.presentation.memory.TrackingResultScreen
 import com.self.lovenotes.service.TrackingService
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@ExperimentalCoroutinesApi
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun DateMemoryScreen(
@@ -49,9 +54,9 @@ fun DateMemoryScreen(
     val users by viewModel.users.collectAsState()
     val memories by viewModel.memories.collectAsState()
     val isTracking by viewModel.isTracking.collectAsState()
-    val selectedDate by viewModel.selectedDate.collectAsState()
     val context = LocalContext.current
 
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     val showMemoryDialog by viewModel.showMemoryDialog.collectAsState()
 
     val permissions = listOf(
@@ -66,13 +71,9 @@ fun DateMemoryScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchMemories()
-    }
-
     if (showMemoryDialog != null) {
         TrackingResultScreen(
-            sharables = users.values.toList().drop(1),
+            sharables = users.drop(1),
             dateMemory = showMemoryDialog!!,
             onSave = viewModel::updateMemory,
             onClose = { viewModel.closeEditMemeory() }
@@ -118,17 +119,9 @@ fun DateMemoryScreen(
                         shadowElevation = 4.dp,
                     ) {
                         BasicPagerCalendar(
-                            selectedDate = LocalDate.parse(
-                                selectedDate,
-                                DateTimeFormatter.ISO_LOCAL_DATE
-                            ),
-                            onDateSelected = { date ->
-                                viewModel.selectDate(
-                                    date.format(
-                                        DateTimeFormatter.ISO_LOCAL_DATE
-                                    )
-                                )
-                            },
+                            selectedDate = selectedDate,
+                            onDateSelected = { selectedDate = it },
+                            onChangedMonth = viewModel::fetchDateMemoryMonth,
                             markedDate = memories.map {
                                 LocalDate.parse(
                                     it.date,
@@ -138,7 +131,8 @@ fun DateMemoryScreen(
                         )
                     }
 
-                    memories.filter { it.date == selectedDate }.sortedByDescending { it.timeStamp }.let {
+                    memories.filter { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) }
+                        .sortedByDescending { it.timeStamp }.let {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -148,12 +142,8 @@ fun DateMemoryScreen(
                             it.forEach { memory ->
                                 MemoryCard(
                                     memory = memory,
-                                    onEdit =
-                                    if (memory.uid == users.keys.toList()[0]) {
-                                        { viewModel.openEditMemory(memory) }
-                                    } else {
-                                        null
-                                    },
+                                    isOwner = memory.uid == users[0].uid,
+                                    onEdit = { viewModel.openEditMemory(memory) },
                                     onDelete = { viewModel.deleteMemory(memory) },
                                 )
                             }

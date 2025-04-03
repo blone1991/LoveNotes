@@ -52,6 +52,7 @@ fun EventCard(
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val movingValue = remember { Animatable(0f) }
     val padingValue = remember { Animatable(0f) }
 
@@ -128,7 +129,13 @@ fun EventCard(
                     IconButton(onClick = onEdit) {
                         Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
                     }
-                    IconButton(onClick = onDelete) {
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            launch { movingValue.animateTo(0f, tween(300)) }
+                            launch { padingValue.animateTo(0f, tween(500)) }
+                        }.invokeOnCompletion { onDelete() }
+
+                    }) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = "Edit")
                     }
                 }

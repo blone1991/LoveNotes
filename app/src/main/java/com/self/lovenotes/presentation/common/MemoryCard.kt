@@ -2,12 +2,21 @@
 
 package com.self.lovenotes.presentation.common
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -23,8 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -32,34 +38,28 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
-import com.google.android.gms.maps.model.AdvancedMarker
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.self.lovenotes.R
 import com.self.lovenotes.data.remote.model.DateMemory
+import kotlinx.coroutines.launch
 
 @Composable
 fun MemoryCard(
@@ -75,17 +75,50 @@ fun MemoryCard(
 
     val cameraPositionState = rememberCameraPositionState()
 
-    val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.marker))
-    val progress by animateLottieCompositionAsState(
-        composition = composition,
-        iterations = LottieConstants.IterateForever, // 반복 횟수 설정 (무한 반복: LottieConstants.IterateForever)
-        isPlaying = true // 애니메이션 재생 여부
-    )
+//    val coroutineScope = rememberCoroutineScope()
+    val movingMarkerValue = remember { Animatable(0f, 1f) }
+    val expandValue = remember { Animatable(0f) }
 
+    LaunchedEffect (isExpanded) {
+        launch {
+            if (isExpanded) {
+                movingMarkerValue.animateTo(
+                    targetValue = (memory.getLatLngList().size - 1).toFloat(),
+                    animationSpec = tween(8000, 0, easing = LinearEasing)
+                )
+            } else {
+                movingMarkerValue.snapTo(0f)
+            }
+        }
+
+        launch {
+            if (isExpanded) {
+                expandValue.animateTo(
+                    targetValue = 10f,
+                    animationSpec = tween(500, 0, LinearEasing)
+                )
+            } else {
+                expandValue.animateTo(
+                    targetValue = 0f,
+                    animationSpec = tween(500, 0, LinearEasing)
+                )
+            }
+        }
+    }
+
+    val movingValue = remember { Animatable(0f) }
+    val padingValue = remember { Animatable(0f) }
+
+    LaunchedEffect (Unit) {
+        launch { movingValue.animateTo(100f, tween(300)) }
+        launch { padingValue.animateTo(1f, tween(500)) }
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .offset(x= (100 - movingValue.value).dp)
+            .alpha(padingValue.value)
             .shadow(elevation, shape = RoundedCornerShape(12.dp))
             .combinedClickable(
                 onLongClick = onLongClick,
@@ -174,33 +207,14 @@ fun MemoryCard(
                 if (LatLngList.isNotEmpty()) {
 
                     MarkerComposable(
-                        state = MarkerState(position = LatLngList[0]),
-                        title = "Start",
+                        state = MarkerState(position = LatLngList[
+                                movingMarkerValue.value.toInt()
+                        ]),
+                        title = "Ours",
 
                     ) {
-                        Box(modifier = Modifier.size(50.dp).offset(y = 15.dp),
-                            contentAlignment = Alignment.BottomCenter) {
-                            LottieAnimation(
-                                composition = composition,
-                                progress = { progress },
-                            )
-                        }
-//                        Icon(imageVector = Icons.Default.Face, contentDescription = "Start")
+                        Text(text = "😍")
                     }
-
-                    MarkerComposable(
-                        state = MarkerState(position = LatLngList[LatLngList.size -1]),
-                        title = "End"
-                    ){
-                        Box(modifier = Modifier.size(50.dp).offset(y = 15.dp),
-                            contentAlignment = Alignment.BottomCenter) {
-                            LottieAnimation(
-                                composition = composition,
-                                progress = { progress },
-                            )
-                        }
-                    }
-
 
                     Polyline(
                         points = LatLngList,
@@ -211,9 +225,18 @@ fun MemoryCard(
                 }
             }
 
-            if (isExpanded && memory.photoBase64.isNotEmpty()) {
+            AnimatedVisibility(
+                visible = isExpanded && memory.photoBase64.isNotEmpty(),
+                enter = expandVertically(
+                    animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
+                ) + fadeIn(animationSpec = tween(1000)), // 페이드 인 추가
+                exit = shrinkVertically(
+                    animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
+                ) + fadeOut(animationSpec = tween(1000)) // 페이드 아웃 추가
+            ) {
                 LazyRow(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                 ) {
                     items(memory.photoBase64.mapNotNull {
                         utils.base64ToBitmap(it)?.asImageBitmap()

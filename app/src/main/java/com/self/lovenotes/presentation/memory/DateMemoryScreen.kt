@@ -3,6 +3,11 @@ package com.self.lovenotes.presentation.memory.view
 import BasicPagerCalendar
 import android.Manifest
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -131,24 +136,38 @@ fun DateMemoryScreen(
                         )
                     }
 
-                    memories.filter { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) }
-                        .sortedByDescending { it.timeStamp }.let {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            it.forEach { memory ->
-                                MemoryCard(
-                                    memory = memory,
-                                    isOwner = memory.uid == users[0].uid,
-                                    onEdit = { viewModel.openEditMemory(memory) },
-                                    onDelete = { viewModel.deleteMemory(memory) },
-                                )
+                    AnimatedVisibility(
+                        visible = memories.any { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) },
+                        enter = fadeIn(
+                            animationSpec = tween(500),
+                            initialAlpha = 0f
+                        ),
+                        exit = fadeOut(
+                            animationSpec = tween(500),
+                            targetAlpha = 0f
+                        )
+                    ) {
+                        memories
+                            .filter { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) }
+                            .sortedByDescending { it.timeStamp }.let {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        it.forEach { memory ->
+                                            MemoryCard(
+                                                memory = memory,
+                                                isOwner = memory.uid == users[0].uid,
+                                                onEdit = { viewModel.openEditMemory(memory) },
+                                                onDelete = { viewModel.deleteMemory(memory) },
+                                            )
+                                        }
+                                    }
+                                }
                             }
-                        }
-                    }
+
                 }
             }
         }

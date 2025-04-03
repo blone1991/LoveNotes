@@ -1,11 +1,19 @@
 package com.self.lovenotes.presentation.calendar
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -18,15 +26,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.center
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.self.lovenotes.data.remote.model.Event
 import com.woowla.compose.icon.collections.tabler.Tabler
 import com.woowla.compose.icon.collections.tabler.tabler.Outline
 import com.woowla.compose.icon.collections.tabler.tabler.outline.Clock
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -37,9 +52,19 @@ fun EventCard(
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
+    val movingValue = remember { Animatable(0f) }
+    val padingValue = remember { Animatable(0f) }
+
+    LaunchedEffect (event) {
+        launch { movingValue.animateTo(100f, tween(300)) }
+        launch { padingValue.animateTo(1f, tween(500)) }
+    }
+
     Surface(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .offset(x = (100 - movingValue.value).dp)
+            .alpha(padingValue.value),
         shape = MaterialTheme.shapes.small,
         tonalElevation = 4.dp,
         shadowElevation = 4.dp,
@@ -121,8 +146,5 @@ fun EventCard(
                 }
             }
         }
-
-
     }
-
 }

@@ -1,6 +1,10 @@
 package com.self.lovenotes.presentation.calendar
 
 import BasicPagerCalendar
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -93,7 +97,18 @@ fun CalendarScreen(
             )
         }
 
-        if (selectedDate.year == selectedMonth.year && selectedDate.monthValue == selectedMonth.monthValue) {
+
+        AnimatedVisibility(
+            visible = selectedDate.year == selectedMonth.year && selectedDate.monthValue == selectedMonth.monthValue,
+            enter = fadeIn(
+                animationSpec = tween(500),
+                initialAlpha = 0f
+            ),
+            exit = fadeOut(
+                animationSpec = tween(500),
+                targetAlpha = 0f
+            )
+        ) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()

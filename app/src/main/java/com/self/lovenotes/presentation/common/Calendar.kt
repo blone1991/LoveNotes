@@ -129,10 +129,13 @@ fun CalendarHeader(
 @Composable
 fun DaysOfWeek() {
     Row(modifier = Modifier.fillMaxWidth()) {
-        val daysOfWeek = DayOfWeek.values()
+//        val daysOfWeek = DayOfWeek.values();
+
+        val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
+
         for (dayOfWeek in daysOfWeek) {
             Text(
-                text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                text = dayOfWeek,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
                 color = Color.Gray

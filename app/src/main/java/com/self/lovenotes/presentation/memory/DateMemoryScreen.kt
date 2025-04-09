@@ -2,9 +2,7 @@ package com.self.lovenotes.presentation.memory.view
 
 import BasicPagerCalendar
 import android.Manifest
-import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -37,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -45,7 +42,6 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.self.lovenotes.presentation.memory.DateMemoryViewModel
 import com.self.lovenotes.presentation.common.MemoryCard
 import com.self.lovenotes.presentation.memory.TrackingResultScreen
-import com.self.lovenotes.service.TrackingService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -58,8 +54,7 @@ fun DateMemoryScreen(
 ) {
     val users by viewModel.users.collectAsState()
     val memories by viewModel.memories.collectAsState()
-    val isTracking by viewModel.isTracking.collectAsState()
-    val context = LocalContext.current
+    val locationTrackingSession by viewModel.locationTrackingSession.collectAsState()
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     val showMemoryDialog by viewModel.showMemoryDialog.collectAsState()
@@ -81,7 +76,10 @@ fun DateMemoryScreen(
             sharables = users.drop(1),
             dateMemory = showMemoryDialog!!,
             onSave = viewModel::updateMemory,
-            onClose = { viewModel.closeEditMemeory() }
+            onClose = {
+                viewModel.closeEditMemeory()
+                viewModel.discardTrackingSession();
+            }
         )
     } else {
         Column(
@@ -178,17 +176,15 @@ fun DateMemoryScreen(
         ) {
             FloatingActionButton(
                 onClick = {
-                    if (isTracking) {
-                        context.stopService(Intent(context, TrackingService::class.java))
-                        viewModel.stopTracking()
+                    if (locationTrackingSession != null) {
+                        viewModel.stopTracking();
                     } else {
                         viewModel.startTracking()
-                        context.startForegroundService(Intent(context, TrackingService::class.java))
                     }
                 },
                 modifier = Modifier.padding(16.dp), // 여백 추가
                 shape = CircleShape,
-                containerColor = if (isTracking) Color.Red else MaterialTheme.colorScheme.primary,
+                containerColor = if (locationTrackingSession != null) Color.Red else MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Row(
@@ -197,12 +193,12 @@ fun DateMemoryScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = if (isTracking) Icons.Default.Share else Icons.Default.Add,
+                        imageVector = if (locationTrackingSession != null) Icons.Default.Share else Icons.Default.Add,
                         contentDescription = ""
                     )
                     Text(
                         modifier = Modifier.padding(end = 5.dp),
-                        text = if (isTracking) "Stop" else "Add"
+                        text = if (locationTrackingSession != null) "Stop" else "Add"
                     )
                 }
             }

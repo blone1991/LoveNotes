@@ -175,7 +175,7 @@ fun CalendarScreen(
                             EventCard(
                                 modifier = Modifier.padding(vertical = 8.dp),
                                 event = event,
-                                author = users.filter { it.uid == event.id }.firstOrNull()?.nickname
+                                author = users.firstOrNull { it.uid == event.uid }?.nickname
                                     ?: "UnKnown",
                                 onEdit = { showEventDialog = event },
                                 onDelete = { viewModel.deleteEvent(event) }

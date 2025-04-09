@@ -3,6 +3,9 @@ package com.self.lovenotes.di
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.work.impl.Migration_1_2
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
@@ -48,7 +51,15 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "love_notes_db").build()
+        val migration_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE gps_memory ADD COLUMN sessionId TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        return Room.databaseBuilder(context, AppDatabase::class.java, "love_notes_db")
+            .addMigrations(migration_1_2)
+            .build()
     }
 
     @Provides

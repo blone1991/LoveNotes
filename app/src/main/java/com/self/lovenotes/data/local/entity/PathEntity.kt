@@ -10,6 +10,7 @@ data class PathEntity(
     val date: String,
     val timestamp: Long,
     val latlng: String,
+    val sessionId: String,       // 같은 세션 구분용
 ) {
     fun getLatLng(): LatLng? =
         try {

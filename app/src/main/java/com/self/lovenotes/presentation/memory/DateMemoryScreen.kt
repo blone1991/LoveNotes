@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -62,7 +63,6 @@ fun DateMemoryScreen(
     val permissions = listOf(
         Manifest.permission.ACCESS_BACKGROUND_LOCATION
     )
-
     val permissionLauncher = rememberMultiplePermissionsState(permissions)
 
     LaunchedEffect(permissionLauncher.allPermissionsGranted) {
@@ -179,7 +179,7 @@ fun DateMemoryScreen(
                     if (locationTrackingSession != null) {
                         viewModel.stopTracking();
                     } else {
-                        viewModel.startTracking()
+                        viewModel.startTracking();
                     }
                 },
                 modifier = Modifier.padding(16.dp), // 여백 추가

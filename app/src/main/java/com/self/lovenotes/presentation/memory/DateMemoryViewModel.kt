@@ -1,12 +1,14 @@
 package com.self.lovenotes.presentation.memory
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.self.lovenotes.data.local.dao.PathDao
 import com.self.lovenotes.data.remote.model.DateMemory
 import com.self.lovenotes.domain.usecase.DateMemoryUsecase
+import com.self.lovenotes.service.TrackingService
 import com.self.lovenotes.workers.startLocationTrackingWork
 import com.self.lovenotes.workers.stopLocationTrackingWork
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +25,6 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
-
 
 @ExperimentalCoroutinesApi
 @HiltViewModel
@@ -53,12 +54,13 @@ class DateMemoryViewModel @Inject constructor(
             .edit().putString("CURRENT_SESSION_ID", sessionId).apply()
 
         refreshHasSessionId();
+        context.startForegroundService(Intent(context, TrackingService::class.java))
 
-        startLocationTrackingWork(context)
+//        startLocationTrackingWork(context)
     }
 
     fun stopTracking() {
-        stopLocationTrackingWork(context)
+//        stopLocationTrackingWork(context)
 
         viewModelScope.launch {
             val sessionId = context.getSharedPreferences("LoveNotes", Context.MODE_PRIVATE)

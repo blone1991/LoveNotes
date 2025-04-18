@@ -1,5 +1,7 @@
 package com.self.lovenotes.presentation.navigation
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +27,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,11 +46,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.self.lovenotes.presentation.calendar.CalendarScreen
 import com.self.lovenotes.presentation.login.LoginScreen
 import com.self.lovenotes.presentation.memory.view.DateMemoryScreen
 import com.self.lovenotes.presentation.planner.PlannerScreen
 import com.self.lovenotes.presentation.setting.SettingScreen
+import java.net.URLDecoder
 
 data class NavItem(val route: String, val iconImage: ImageVector?)
 
@@ -67,10 +74,9 @@ fun AppNavGraph(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: navItems[0].route
-    val currentNavItem = navItems.find { it.route == currentRoute } ?: navItems[0]
+    val currentNavItem = navItems.find { currentRoute.startsWith(it.route) } ?: navItems[0]
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val startDestination = remember { mutableStateOf("Login") }
 
     CompositionLocalProvider(value = LocalSnackbarHostState.provides(snackbarHostState)) {
         Scaffold(
@@ -137,10 +143,36 @@ fun AppNavGraph(
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = startDestination.value
+                    startDestination = "Login"
                 ) {
                     composable("Login") {
-                        LoginScreen(onLogin = { startDestination.value = "Calendar" })
+                        LoginScreen(
+                            onLogin = {_uri ->
+
+                                val newRoute = _uri?.let { uri ->
+                                    try {
+                                        when (uri.path) {
+                                            "/invite" -> {
+                                                val inviteCode = uri.getQueryParameter("invite_code") ?: ""
+                                                "Setting?inviteCode=${inviteCode}"
+                                            }
+                                            else -> "Calendar"
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("AppNavGraph", "URI Parsing Error: $e")
+                                        "Calendar" // 파싱 실패 시 기본 경로
+                                    }
+                                } ?: "Calendar"
+                                Log.d("AppNavGraph", "Navigating to: $newRoute")
+                                navController.navigate(newRoute) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                        )
                     }
                     composable("Calendar") {
                         CalendarScreen()
@@ -151,8 +183,10 @@ fun AppNavGraph(
                     composable("Planner") {
                         PlannerScreen()
                     }
-                    composable("Setting") {
-                        SettingScreen()
+                    composable("Setting?inviteCode={inviteCode}",
+                        arguments = listOf(navArgument("inviteCode") { nullable = true })
+                    ) {
+                        SettingScreen(inviteCode = it.arguments?.getString("inviteCode"))
                     }
                     composable("Memory") {
                         DateMemoryScreen()

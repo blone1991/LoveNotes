@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
@@ -31,4 +32,13 @@ object FirebaseModule {
             FirebaseApp.initializeApp(context)
         return FirebaseFirestore.getInstance()
     }
+
+    @Provides
+    @Singleton
+    fun provideFireDynamicLink(@ApplicationContext context: Context): FirebaseDynamicLinks {
+        if (FirebaseApp.getApps(context).isEmpty())
+            FirebaseApp.initializeApp(context)
+        return FirebaseDynamicLinks.getInstance()
+    }
+
 }

@@ -9,6 +9,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services") version "4.4.2"
     id("com.google.firebase.crashlytics")
+    id("com.google.firebase.firebase-perf")
 
     id("kotlin-parcelize")
 }
@@ -113,6 +114,8 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")            // firestore - 문서저장소
     implementation("com.google.firebase:firebase-crashlytics")          // crashlytics - 앱 관리 Dashboard
     implementation("com.google.firebase:firebase-analytics")            // analytic - 앱 관리 Dashboard (애널리틱스 기능)
+    implementation("com.google.firebase:firebase-perf")                 // performance
+    implementation("com.google.firebase:firebase-dynamic-links")        // dynamiclink
 
     // Coil 이미지 로드
     implementation("io.coil-kt:coil-compose:2.4.0")                     // Coil

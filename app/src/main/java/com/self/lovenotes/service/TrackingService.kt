@@ -100,9 +100,8 @@ class TrackingService : Service() {
 
     @SuppressLint("MissingPermission")
     private fun registerLocationLoop (): Unit {
-
         Log.d("TrackingService", "onStartCommand: start")
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY,10000)
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
             .build()
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }

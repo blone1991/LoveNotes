@@ -1,6 +1,7 @@
 package com.self.lovenotes.presentation.calendar
 
 import BasicPagerCalendar
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -56,7 +57,7 @@ fun CalendarScreen(
 
     val localSnackbarHostState = LocalSnackbarHostState.current
     var snackbarMessage: String? by remember { mutableStateOf(null) }
-
+    Log.d("화면렌더링", "BasicPagerCalendar: ")
     LaunchedEffect(snackbarMessage) {
         if (!snackbarMessage.isNullOrEmpty()) {
             localSnackbarHostState.showSnackbar(message = snackbarMessage!!)
@@ -175,10 +176,10 @@ fun CalendarScreen(
                             EventCard(
                                 modifier = Modifier.padding(vertical = 8.dp),
                                 event = event,
-                                author = users.firstOrNull { it.uid == event.uid }?.nickname
-                                    ?: "UnKnown",
+                                author = users.firstOrNull { it.uid == event.uid }?.nickname ?: "UnKnown",
+                                isOwner = event.uid == users[0].uid,
                                 onEdit = { showEventDialog = event },
-                                onDelete = { viewModel.deleteEvent(event) }
+                                onDelete = { viewModel.deleteEvent(event) },
                             )
                         }
                     }

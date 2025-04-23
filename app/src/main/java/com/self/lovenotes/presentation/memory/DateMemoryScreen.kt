@@ -2,10 +2,7 @@ package com.self.lovenotes.presentation.memory.view
 
 import BasicPagerCalendar
 import android.Manifest
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -29,21 +28,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.self.lovenotes.data.remote.model.DateMemory
 import com.self.lovenotes.presentation.memory.DateMemoryViewModel
 import com.self.lovenotes.presentation.common.MemoryCard
-import com.self.lovenotes.presentation.memory.TrackingResultScreen
+import com.self.lovenotes.presentation.memory.EditDateMemoryScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -53,17 +54,24 @@ import java.time.format.DateTimeFormatter
 fun DateMemoryScreen(
     viewModel: DateMemoryViewModel = hiltViewModel(),
 ) {
+    Log.d("화면렌더링", "DateMemoryScreen: ")
     val users by viewModel.users.collectAsState()
     val memories by viewModel.memories.collectAsState()
     val locationTrackingSession by viewModel.locationTrackingSession.collectAsState()
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    val showMemoryDialog by viewModel.showMemoryDialog.collectAsState()
 
-    val permissions = listOf(
+    val permissionLauncher = rememberMultiplePermissionsState(listOf(
         Manifest.permission.ACCESS_BACKGROUND_LOCATION
-    )
-    val permissionLauncher = rememberMultiplePermissionsState(permissions)
+    ))
+
+    var onEditMemory by remember { mutableStateOf<DateMemory?>(null) }
+
+    LaunchedEffect (Unit) {
+        viewModel.showEditMemoryDialog.collect {
+            onEditMemory = it
+        }
+    }
 
     LaunchedEffect(permissionLauncher.allPermissionsGranted) {
         if (!permissionLauncher.allPermissionsGranted) {
@@ -71,15 +79,12 @@ fun DateMemoryScreen(
         }
     }
 
-    if (showMemoryDialog != null) {
-        TrackingResultScreen(
+    if (onEditMemory != null) {
+        EditDateMemoryScreen(
             sharables = users.drop(1),
-            dateMemory = showMemoryDialog!!,
+            dateMemory = onEditMemory!!,
             onSave = viewModel::updateMemory,
-            onClose = {
-                viewModel.closeEditMemeory()
-                viewModel.discardTrackingSession();
-            }
+            onClose = { viewModel.discardTrackingSession(); }
         )
     } else {
         Column(
@@ -134,37 +139,26 @@ fun DateMemoryScreen(
                         )
                     }
 
-                    AnimatedVisibility(
-                        visible = memories.any { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) },
-                        enter = fadeIn(
-                            animationSpec = tween(500),
-                            initialAlpha = 0f
-                        ),
-                        exit = fadeOut(
-                            animationSpec = tween(500),
-                            targetAlpha = 0f
-                        )
-                    ) {
-                        memories
-                            .filter { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) }
-                            .sortedByDescending { it.timeStamp }.let {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 8.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        it.forEach { memory ->
-                                            MemoryCard(
-                                                memory = memory,
-                                                isOwner = memory.uid == users[0].uid,
-                                                onEdit = { viewModel.openEditMemory(memory) },
-                                                onDelete = { viewModel.deleteMemory(memory) },
-                                            )
-                                        }
+                    memories
+                        .filter { it.date == selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE) }
+                        .sortedByDescending { it.timeStamp }.let {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    it.forEach { memory ->
+                                        MemoryCard(
+                                            memory = memory,
+                                            isOwner = memory.uid == users[0].uid,
+                                            onEdit = { viewModel.openEditMemory(memory) },
+                                            onDelete = { viewModel.deleteMemory(memory) },
+                                        )
                                     }
                                 }
                             }
+
 
                 }
             }

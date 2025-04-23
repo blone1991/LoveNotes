@@ -34,6 +34,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -143,12 +144,11 @@ fun AppNavGraph(
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = "Login"
+                    startDestination = navItems[0].route
                 ) {
                     composable("Login") {
                         LoginScreen(
                             onLogin = {_uri ->
-
                                 val newRoute = _uri?.let { uri ->
                                     try {
                                         when (uri.path) {
@@ -160,14 +160,13 @@ fun AppNavGraph(
                                         }
                                     } catch (e: Exception) {
                                         Log.e("AppNavGraph", "URI Parsing Error: $e")
-                                        "Calendar" // 파싱 실패 시 기본 경로
+                                        "Calendar"
                                     }
                                 } ?: "Calendar"
+
                                 Log.d("AppNavGraph", "Navigating to: $newRoute")
                                 navController.navigate(newRoute) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
+                                    popUpTo("Login") { inclusive = true }
                                     launchSingleTop = true
                                     restoreState = true
                                 }

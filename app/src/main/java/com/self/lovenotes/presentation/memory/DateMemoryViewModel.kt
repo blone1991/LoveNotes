@@ -14,6 +14,7 @@ import com.self.lovenotes.workers.stopLocationTrackingWork
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -45,8 +46,8 @@ class DateMemoryViewModel @Inject constructor(
         MutableStateFlow(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE))
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
 
-    private val _showEditMemoryDialog = MutableStateFlow<DateMemory?>(null)
-    val showMemoryDialog = _showEditMemoryDialog.asStateFlow()
+    val showEditMemoryDialog = MutableSharedFlow<DateMemory>()
+
 
     fun startTracking() {
         val sessionId = UUID.randomUUID().toString()
@@ -115,11 +116,9 @@ class DateMemoryViewModel @Inject constructor(
 
 
     fun openEditMemory(dateMemory: DateMemory) {
-        _showEditMemoryDialog.value = dateMemory
-    }
-
-    fun closeEditMemeory() {
-        _showEditMemoryDialog.value = null
+        viewModelScope.launch {
+            showEditMemoryDialog.emit(dateMemory)
+        }
     }
 
 

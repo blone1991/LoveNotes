@@ -1,12 +1,7 @@
 package com.self.lovenotes.presentation.calendar
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,8 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.center
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.self.lovenotes.data.remote.model.Event
@@ -49,6 +42,7 @@ fun EventCard(
     modifier: Modifier = Modifier,
     event: Event,
     author: String,
+    isOwner : Boolean,
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
@@ -126,17 +120,20 @@ fun EventCard(
                 }
 
                 Row {
-                    IconButton(onClick = onEdit) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
-                    }
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            launch { movingValue.animateTo(0f, tween(300)) }
-                            launch { padingValue.animateTo(0f, tween(500)) }
-                        }.invokeOnCompletion { onDelete() }
+                    if (isOwner) {
+                        IconButton(onClick = onEdit) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+                        }
 
-                    }) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Edit")
+                        IconButton(onClick = {
+                            coroutineScope.launch {
+                                launch { movingValue.animateTo(0f, tween(300)) }
+                                launch { padingValue.animateTo(0f, tween(500)) }
+                            }.invokeOnCompletion { onDelete() }
+
+                        }) {
+                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Edit")
+                        }
                     }
                 }
             }

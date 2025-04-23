@@ -43,17 +43,13 @@ fun BasicPagerCalendar(
     val initialPage = 6
     val pageCount = 18
     val pagerState = rememberPagerState(initialPage = initialPage) // 초기 페이지 설정
-    val currentMonth = remember { mutableStateOf(YearMonth.from(today)) }
+    var currentMonth = YearMonth.from(today).plusMonths((pagerState.currentPage - initialPage).toLong())
     val coroutineScope = rememberCoroutineScope()
 
     // 페이지가 변경될 때마다 currentMonth 업데이트
     LaunchedEffect(pagerState.currentPage) {
-        currentMonth.value =
-            YearMonth.from(today).plusMonths((pagerState.currentPage - initialPage).toLong())
-    }
-
-    SideEffect {
-        onChangedMonth(currentMonth.value)
+        currentMonth = YearMonth.from(today).plusMonths((pagerState.currentPage - initialPage).toLong())
+        onChangedMonth(currentMonth)
     }
 
     Column(
@@ -61,7 +57,7 @@ fun BasicPagerCalendar(
     ) {
         // 캘린더 헤더 (이전/다음 달 이동 버튼, 현재 월 표시)
         CalendarHeader(
-            currentMonth = currentMonth.value,
+            currentMonth = currentMonth,
             onPreviousMonthClick = {
                 coroutineScope.launch {
                     pagerState.animateScrollToPage(pagerState.currentPage - 1)
@@ -131,7 +127,7 @@ fun DaysOfWeek() {
     Row(modifier = Modifier.fillMaxWidth()) {
 //        val daysOfWeek = DayOfWeek.values();
 
-        val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
+        val daysOfWeek = listOf("월", "화", "수", "목", "금", "토", "일")
 
         for (dayOfWeek in daysOfWeek) {
             Text(

@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-
+// 포트폴리오 프로젝트이기 때문에 추후 참고용으로 남겨둠
 class LocationWorker(
     context: Context,
     params: WorkerParameters

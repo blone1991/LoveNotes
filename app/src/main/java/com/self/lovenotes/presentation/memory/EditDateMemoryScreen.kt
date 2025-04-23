@@ -65,7 +65,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun TrackingResultScreen(
+fun EditDateMemoryScreen(
     sharables: List<User>,
     dateMemory: DateMemory,
     onSave: (DateMemory) -> Unit,
@@ -117,6 +117,8 @@ fun TrackingResultScreen(
                 }
             }
         }
+
+        memo = dateMemory.memo
     }
 
     Column(

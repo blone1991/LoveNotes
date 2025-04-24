@@ -333,9 +333,9 @@ fun EditDateMemoryScreen(
                     )
                     onClose()
                 },
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
             ) {
-                Text("Save")
+                Text("Edit")
             }
         }
     }

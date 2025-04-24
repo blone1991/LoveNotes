@@ -65,13 +65,7 @@ fun DateMemoryScreen(
         Manifest.permission.ACCESS_BACKGROUND_LOCATION
     ))
 
-    var onEditMemory by remember { mutableStateOf<DateMemory?>(null) }
-
-    LaunchedEffect (Unit) {
-        viewModel.showEditMemoryDialog.collect {
-            onEditMemory = it
-        }
-    }
+    val onEditMemory by viewModel.onEditMemory.collectAsState()
 
     LaunchedEffect(permissionLauncher.allPermissionsGranted) {
         if (!permissionLauncher.allPermissionsGranted) {
@@ -79,13 +73,16 @@ fun DateMemoryScreen(
         }
     }
 
-    if (onEditMemory != null) {
+    onEditMemory?.let {
         EditDateMemoryScreen(
             sharables = users.drop(1),
-            dateMemory = onEditMemory!!,
-            onSave = viewModel::updateMemory,
-            onClose = { viewModel.discardTrackingSession(); }
+            dateMemory = it,
+            onSave = { viewModel.updateMemory(it) },
+            onClose = { viewModel.closeEditMemory() }
         )
+    }
+    if (onEditMemory != null) {
+
     } else {
         Column(
             modifier = Modifier

@@ -3,6 +3,7 @@ package com.self.lovenotes.presentation.memory
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.self.lovenotes.data.local.dao.PathDao
@@ -46,7 +47,9 @@ class DateMemoryViewModel @Inject constructor(
         MutableStateFlow(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE))
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
 
-    val showEditMemoryDialog = MutableSharedFlow<DateMemory>()
+    private val _onEditMemory = MutableStateFlow<DateMemory?>(null)
+    val onEditMemory = _onEditMemory.asStateFlow()
+
 
 
     fun startTracking() {
@@ -115,10 +118,12 @@ class DateMemoryViewModel @Inject constructor(
     }
 
 
-    fun openEditMemory(dateMemory: DateMemory) {
-        viewModelScope.launch {
-            showEditMemoryDialog.emit(dateMemory)
-        }
+    fun openEditMemory(dateMemory: DateMemory) = viewModelScope.launch {
+        _onEditMemory.value = dateMemory
+    }
+
+    fun closeEditMemory() = viewModelScope.launch {
+        _onEditMemory.value = null
     }
 
 

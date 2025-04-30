@@ -67,10 +67,7 @@ class DateMemoryViewModel @Inject constructor(
 //        stopLocationTrackingWork(context)
 
         viewModelScope.launch {
-            val sessionId = context.getSharedPreferences("LoveNotes", Context.MODE_PRIVATE)
-                .getString("CURRENT_SESSION_ID", null)
-
-            sessionId?.let {
+            getSessionId()?.let {
                 val paths = pathDao.getPathsBySession(it)
 
                 if (paths.isNotEmpty()) {
@@ -88,7 +85,7 @@ class DateMemoryViewModel @Inject constructor(
         }
     }
 
-    fun discardTrackingSession() {
+    private fun discardTrackingSession() {
         viewModelScope.launch {
             locationTrackingSession.value ?.let{
                 pathDao.deleteBySession(it)

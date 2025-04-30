@@ -14,8 +14,7 @@ object utils {
     fun getRotatedBitmapFromUri(context: Context, uri: Uri): Bitmap? {
         return try {
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                val bitmap = BitmapFactory.decodeStream(inputStream)
-                if (bitmap == null) return null
+                val bitmap = BitmapFactory.decodeStream(inputStream) ?: return null
 
                 context.contentResolver.openInputStream(uri)?.use { exifStream ->
                     val exif = ExifInterface(exifStream)

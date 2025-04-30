@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -51,18 +52,19 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.13"
     }
     packaging {
         resources {
@@ -84,10 +86,17 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.junit)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.junit.jupiter)
+
+
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
@@ -156,4 +165,29 @@ dependencies {
 
     implementation ("com.airbnb.android:lottie-compose:6.1.0") // 최신 버전 확인 후 적용
 
+    // ✅ JUnit5 의존성 추가
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    // JUnit5 엔진
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
+    // (Optional) 파라미터 테스트용
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
+
+    // io.Mockk
+    testImplementation("io.mockk:mockk:1.13.7")
+    testImplementation("io.mockk:mockk-agent-jvm:1.13.5")
+    testImplementation("io.mockk:mockk-android:1.13.5") // 안드로이드 테스트용
+
+//    // Mockito + Kotlin extension
+//    testImplementation("org.mockito:mockito-core:5.8.0")
+//    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+//    testImplementation("org.mockito:mockito-junit-jupiter:5.8.0")
+
+    // kotlinx-coroutines-test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    // Flow .test 확장을 위한 의존성
+    testImplementation("app.cash.turbine:turbine:1.0.0")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

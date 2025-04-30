@@ -2,8 +2,6 @@ package com.self.lovenotes.data.remote.repository
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
 import com.self.lovenotes.data.remote.model.Event
 import com.self.lovenotes.data.util.utils.getMonthRange
 import kotlinx.coroutines.Dispatchers
@@ -45,44 +43,6 @@ class EventRepository @Inject constructor(
         }
     }
 
-    suspend fun getEventsForDate(uid: String, date: String): List<Event> =
-        withContext(Dispatchers.IO) {
-            try {
-                val snapshot = firestore.collection("events")
-                    .whereEqualTo("uid", uid)
-                    .whereEqualTo("date", date)
-                    .get()
-                    .await()
-
-                snapshot.map { Event(it) }.toList()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.e("EventRepository", "이벤트 정보 조회 실패")
-
-                emptyList()
-            }
-        }
-
-
-    suspend fun getEventsMontly(uid: String, date: String): List<Event> =
-        withContext(Dispatchers.IO) {
-            val (startDate, endDate) = getMonthRange(date)
-            try {
-                val snapshot = firestore.collection("events")
-                    .whereEqualTo("uid", uid)
-                    .whereGreaterThanOrEqualTo("date", startDate)
-                    .whereLessThanOrEqualTo("date", endDate)
-                    .get()
-                    .await()
-
-                snapshot.map { Event(it) }
-            } catch (e: Exception) {
-                Log.e("EventRepository", "Firestore 조회 실패", e)
-
-                emptyList()
-            }
-        }
-
     fun getEventsMontlyFlow(uids: List<String>, yearMonth: YearMonth) = callbackFlow<List<Event>> {
         val (startDate, endDate) = getMonthRange(yearMonth)
         val query = firestore.collection("events")
@@ -95,8 +55,8 @@ class EventRepository @Inject constructor(
                 return@addSnapshotListener
             }
 
-            value?.let {
-                trySend(it.map { Event(it) })
+            value?.let { querySnapshot ->
+                trySend(querySnapshot.map { Event(it) })
             } ?: run {
                 trySend(emptyList())
             }

@@ -22,6 +22,7 @@ import com.google.accompanist.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
@@ -127,14 +128,18 @@ fun DaysOfWeek() {
     Row(modifier = Modifier.fillMaxWidth()) {
 //        val daysOfWeek = DayOfWeek.values();
 
-        val daysOfWeek = listOf("월", "화", "수", "목", "금", "토", "일")
+        val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
 
-        for (dayOfWeek in daysOfWeek) {
+        for (i in daysOfWeek.indices) {
             Text(
-                text = dayOfWeek,
+                text = daysOfWeek[i],
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
-                color = Color.Gray
+                color = when (i) {
+                    0 -> Color.Red
+                    6 -> Color.Blue
+                    else -> Color.Gray
+                }
             )
         }
     }
@@ -169,7 +174,12 @@ fun CalendarDays(
                             date = date,
                             isSelected = date == selectedDate, // selectedDate 로직 수정 필요
                             onDateSelected = onDateSelected,
-                            isMarked = markedDate.any { it.isEqual(date) }
+                            isMarked = markedDate.any { it.isEqual(date) },
+                            textColor = when (day) {
+                                6 -> Color.Blue
+                                0 -> Color.Red
+                                else -> Color.Black
+                            }
                         )
                     } else {
                         // 현재 달에 속하지 않는 날짜는 빈 공간으로 처리
@@ -192,6 +202,7 @@ fun DateView(
     isSelected: Boolean,
     isMarked: Boolean = true,
     onDateSelected: (LocalDate) -> Unit,
+    textColor: Color
 ) {
     IconButton(
         enabled = !isSelected,
@@ -212,7 +223,7 @@ fun DateView(
         Text(
             text = date.dayOfMonth.toString(),
             fontSize = 14.sp,
-            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.Black
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else textColor
         )
     }
 }
